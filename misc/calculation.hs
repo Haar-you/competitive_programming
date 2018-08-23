@@ -26,7 +26,7 @@ permutationMod :: Integral a => a -> a -> a -> a
 permutationMod n k m
   | n < k || n < 0 || k < 0 = 0
   | n == 0 || k == 0 = 1
-  | otherwise = (n * permutation (n-1) (k-1)) `mod` m
+  | otherwise = (n * permutationMod (n-1) (k-1) m) `mod` m
 
 {-- nCk --}
 combination :: Integral a => a -> a -> a
