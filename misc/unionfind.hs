@@ -50,26 +50,26 @@ type UnionFindST s = STArray s Int (Int,Int)
 newUFST :: Int -> ST s (UnionFindST s)
 newUFST n = newListArray (1,n) (zip [1..n] (repeat 1))
 
-findUFST :: Int -> UnionFindST s -> ST s Int
-findUFST x uf = do
+findUFST :: UnionFindST s -> Int -> ST s Int
+findUFST uf x = do
   (parent,size) <- readArray uf x
   if parent == x then
     return x
     else do
-    next <- findUFST parent uf
+    next <- findUFST uf parent
     writeArray uf x (next,size)
     return next
 
-sameUFST :: Int -> Int -> UnionFindST s -> ST s Bool
-sameUFST x y uf = do
-  xx <- findUFST x uf
-  yy <- findUFST y uf
+sameUFST :: UnionFindST s -> Int -> Int -> ST s Bool
+sameUFST uf x y = do
+  xx <- findUFST uf x
+  yy <- findUFST uf y
   return $ xx == yy
 
-uniteUFST :: Int -> Int -> UnionFindST s -> ST s ()
-uniteUFST x y uf = do
-  xx <- findUFST x uf
-  yy <- findUFST y uf
+uniteUFST :: UnionFindST s -> Int -> Int -> ST s ()
+uniteUFST uf x y = do
+  xx <- findUFST uf x
+  yy <- findUFST uf y
   (_,xs) <- readArray uf xx
   (_,ys) <- readArray uf yy
 
@@ -82,3 +82,7 @@ uniteUFST x y uf = do
     else do
     writeArray uf yy (xx,0)
     writeArray uf xx (xx,xs+1)
+
+main :: IO ()
+main = do
+  return ()

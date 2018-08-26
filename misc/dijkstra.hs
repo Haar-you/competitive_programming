@@ -15,9 +15,11 @@ type Edge = (Node, Cost)
 type Graph = Array Node [Edge]
 type Route = [Edge]
 
-dijkstra :: Graph -> Node -> Array Int Cost
+inf = maxBound :: Int
+
+dijkstra :: Graph -> Node -> Array Node Cost
 dijkstra graph start = runST $ do
-  cost <- newArray (bounds graph) (-1) :: ST s (STUArray s Node Cost)
+  cost <- newArray (bounds graph) inf :: ST s (STUArray s Node Cost)
   check <- newArray (bounds graph) False :: ST s (STUArray s Node Bool)
   writeArray cost start 0
   evalStateT (dijkstra' cost check) (Set.singleton (0, start))
