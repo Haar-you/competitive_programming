@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE MultiWayIf #-}
 
 import Control.Applicative
 import Control.Monad
@@ -23,7 +24,7 @@ Range Minimum Query -> INF min
 Range Maximum Query -> -INF max
 Range Sum Query -> 0 (+)
 
-Range Update Query -> Nil const (Nilは適当な範囲外の値であればよい。 const :: a -> b -> a は非可換であることに注意。)
+Range Update Query -> Nil (f(a,b) := if a == Nil then b else a) (Nilは適当な範囲外の値であればよい。)
 Range Add Query -> 0 (+)
 
 --}
@@ -106,6 +107,65 @@ findLazySegmentTree (tree,e,f) i = do
         VGM.read tree (i*2+1) >>= \b -> VGM.write tree (i*2+1) (f a b)
         VGM.read tree (i*2+2) >>= \b -> VGM.write tree (i*2+2) (f a b)
         VGM.write tree i e
+
+
+{-- 範囲更新・範囲取得のセグメント木 --}
+type MRangeSegmentTree v s a = ((v s a, a, (a -> a -> a)), (v s a, a, (a -> a -> a)), Int, (a -> Int -> a))
+-- 範囲取得用の(セグメント木,単位元,二項演算)、範囲更新用の(遅延セグメント木,単位元,二項演算)
+type STRangeSegmentTree s a = MRangeSegmentTree VM.MVector s a
+type IORangeSegmentTree a = STRangeSegmentTree RealWorld a
+type STURangeSegmentTree s a = MRangeSegmentTree VUM.MVector s a
+type IOURangeSegmentTree a = STURangeSegmentTree RealWorld a
+
+
+newRangeSegmentTree :: (Applicative m, PrimMonad m, VGM.MVector v a) => Int -> a -> (a -> a -> a) -> a -> (a -> a -> a) -> (a -> Int -> a) -> m (MRangeSegmentTree v (PrimState m) a)
+newRangeSegmentTree n e1 f1 e2 f2 h = do
+  tree1 <- VGM.replicate m e1
+  tree2 <- VGM.replicate m e2
+  return ((tree1,e1,f1),(tree2,e2,f2), m, h)
+  where m = 2 * (2 ^ (ceiling $ logBase 2 (fromIntegral n))) - 1
+
+modifyRangeSegmentTree :: (Applicative m, Eq a, PrimMonad m, VGM.MVector v a) => MRangeSegmentTree v (PrimState m) a -> Int -> Int -> (a -> a) -> m ()
+modifyRangeSegmentTree ((tree,e1,f1),(lazy,e2,f2),size,h) x y g = do
+  void $ aux 0 0 n
+  where
+    n = size `div` 2 + 1
+    aux i l r = do
+      propag i (r-l)
+      if
+        | r <= x || y <= l -> VGM.read tree i
+        | x <= l && r <= y -> g <$> VGM.read lazy i >>= (\a -> VGM.write lazy i a >> VGM.read tree i >>= \b ->  return ( (h a (r-l))))
+        | otherwise -> f1 <$> aux (i*2+1) l ((l+r)`div`2) <*> aux (i*2+2) ((l+r)`div`2) r >>= (\a -> VGM.write tree i a >> return a)
+
+    propag i len = do
+      a <- VGM.read lazy i
+      when (a /= e2) $ do
+        when (i<n-1) $ do
+          VGM.write lazy (i*2+1) =<< f2 a <$> VGM.read lazy (i*2+1)
+          VGM.write lazy (i*2+2) =<< f2 a <$> VGM.read lazy (i*2+2)
+        VGM.write tree i =<< (\a b -> (f2 (h b len) a)) <$> VGM.read tree i <*> VGM.read lazy i
+        VGM.write lazy i e2
+
+findRangeSegmentTree :: (Applicative m, Eq a, PrimMonad m, VGM.MVector v a) => MRangeSegmentTree v (PrimState m) a -> Int -> Int -> m a
+findRangeSegmentTree ((tree1,e1,f1),(tree2,e2,f2),size,h) x y = do
+  aux 0 0 n
+  where
+    n = size `div` 2 + 1
+    aux i l r = do
+      propag i (r-l)
+      if
+        | r <= x || y <= l -> return e1
+        | x <= l && r <= y -> VGM.read tree1 i
+        | otherwise -> f1 <$> aux (i*2+1) l ((l+r)`div`2) <*> aux (i*2+2) ((l+r)`div`2) r
+        
+    propag i len = do
+      a <- VGM.read tree2 i
+      when (a /= e2) $ do
+        when (i<n-1) $ do
+          VGM.write tree2 (i*2+1) =<< f2 a <$> VGM.read tree2 (i*2+1)
+          VGM.write tree2 (i*2+2) =<< f2 a <$> VGM.read tree2 (i*2+2)
+        VGM.write tree1 i =<< (\a b -> (f2 (h b len) a)) <$> VGM.read tree1 i <*> VGM.read tree2 i
+        VGM.write tree2 i e2
 
 
 main = do
