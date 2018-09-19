@@ -17,8 +17,18 @@ class FenwichTree(val n: Int){
     }
     return a
   }
-  def lower_bound(x: Int): Int = {
-
-
+  def lower_bound(i: Int): Int = {
+    var w = i
+    var k: Int = 1
+    var x: Int = 0
+    while (k*2 <= n) k *= 2
+    while (k > 0){
+      if (x+k <= n && tree(x+k) < w) {
+        w -= tree(x+k)
+        x += k
+      }
+      k /= 2
+    }
+    x+1
   }
 }
