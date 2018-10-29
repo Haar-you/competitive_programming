@@ -43,7 +43,7 @@ combinationModP :: Integral a => a -> a -> a -> a
 combinationModP n k p
   | n < k || n < 0 || k < 0 = 0
   | n == 0 || k == 0 = 1
-  | otherwise = (n * (powerMod k (p-2) p) * combinationModP (n-1) (k-1) p) `mod` p
+  | otherwise = ((n * (powerMod k (p-2) p)) `mod` p * combinationModP (n-1) (k-1) p) `mod` p
   
 {-- n^p --}
 power :: Integral a => a -> a -> a
@@ -57,10 +57,13 @@ power n p = k * k * (if mod p 2 == 0 then 1 else n)
 powerMod :: Integral a => a -> a -> a -> a
 powerMod n 0 m = 1
 powerMod n 1 m = n `mod` m
-powerMod n p m = (k * k * (if mod p 2 == 0 then 1 else n)) `mod` m
+powerMod n p m = ((k * k) `mod` m * (if mod p 2 == 0 then 1 else n)) `mod` m
   where
     k = powerMod n (div p 2) m
 
+{-- mod 逆数--}
+modInv :: Integral a => a -> a -> a
+modInv n p = powerMod n (p-2) p
 
 {-- sieve of eratosthenes--}
 primes = aux [2..]

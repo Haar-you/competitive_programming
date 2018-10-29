@@ -10,12 +10,12 @@
 #define ALL(x) (x).begin(), (x).end()
 #define LLI long long int
 using namespace std;
-
 template <typename T> using V = vector<T>;
 template <typename T, typename U> using P = pair<T,U>;
-
 template <typename T> T gcd(T a, T b){a = abs(a); b = abs(b); if(a<b) swap(a,b); while(b>0){a %= b; swap(a,b);} return a;}
 template <typename T> T lcm(T a, T b){return (1LL * a * b) / gcd(a,b);}
+template <typename T, typename U> P<T,U> operator+(const P<T,U> &a, const P<T,U> &b){return {a.first + b.first, a.second + b.second};}
+template <typename T, typename U> P<T,U> operator-(const P<T,U> &a, const P<T,U> &b){return {a.first - b.first, a.second - b.second};}
 
 int main(){
   cin.tie(0);
@@ -32,13 +32,7 @@ int dir9[9][2] = {{1,0},{-1,0},{0,1},{0,-1},{1,1},{1,-1},{-1,1},{-1,-1},{0,0}};
 
 const int inf = INT_MAX;
 
-template <typename T>
-LLI power(T n, T p, T m){
-  if(p==0) return 1LL;
-  if(p==1) return n;
-  LLI k = power(n, p/2, m);
-  return (k*k*(p%2?n:1))%m;
-}
+template <typename T> LLI power(T n, T p, T m){if(p==0) return 1LL; if(p==1) return n; LLI k = power(n, p/2, m); return ((k*k)%m*(p%2?n:1))%m;}
 
 // mod逆数
 template <typename T> LLI modInv(T n, T p){return power(n,p-2,p);}
@@ -64,8 +58,10 @@ template <typename T> T floorLT(T a, T b){if(a % b) return a/b-(sign(a)*sign(b)<
 // 二乗判定
 template <typename T> bool isSquare(T n){T rt = sqrt(n); return rt*rt == n;}
 
+// 約数個数
 int countDivisor(LLI n){int count = 0; for(LLI i=1LL; i*i<=n; ++i) if(n%i == 0) ++count; count = count*2-(isSquare(n)?1:0); return count;}
 
+// 約数列挙
 vector<LLI> listDivisors(LLI n){
   vector<LLI> temp, res;
   for(LLI i=1LL; i*i<n; ++i) if(n%i == 0) temp.push_back(i);
@@ -75,8 +71,20 @@ vector<LLI> listDivisors(LLI n){
   return res;
 }
 
+vector<bool> primes(int n){
+  vector<bool> res(n+1, true);
+  res[0] = res[1] = false;
+  FOR(i,2,n) if(res[i]) for(int j=2*i; j<=n; j+=i) res[j] = false;
+  return res;
+}
 
-
+bool isPrime(int n){
+  if(n<=1) return false;
+  for(int i=2; i*i<=n; ++i){
+    if(n%i==0) return false;
+  }
+  return true;
+}
 
 
 
