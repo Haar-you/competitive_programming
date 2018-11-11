@@ -4,18 +4,14 @@
 #define REP(v, n) FOR(v, 0, n)
 #define REPE(v, n) FORE(v, 0, n)
 #define REV(v, a, b) for(int v = (a); v >= (b); --v)
-#define RS resize
-#define CLR clear
-#define PB push_back
 #define ALL(x) (x).begin(), (x).end()
 #define LLI long long int
 using namespace std;
 template <typename T> using V = vector<T>;
 template <typename T, typename U> using P = pair<T,U>;
-template <typename T> T gcd(T a, T b){a = abs(a); b = abs(b); if(a<b) swap(a,b); while(b>0){a %= b; swap(a,b);} return a;}
-template <typename T> T lcm(T a, T b){return (1LL * a * b) / gcd(a,b);}
 template <typename T, typename U> P<T,U> operator+(const P<T,U> &a, const P<T,U> &b){return {a.first + b.first, a.second + b.second};}
 template <typename T, typename U> P<T,U> operator-(const P<T,U> &a, const P<T,U> &b){return {a.first - b.first, a.second - b.second};}
+template <typename T> void cout_join(vector<T> &v,string d=" "){REP(i,v.size()){if(i>0)cout<<d;cout<<v[i];}cout<<endl;}
 
 int main(){
   cin.tie(0);
@@ -25,12 +21,16 @@ int main(){
   return 0;
 }
 
-int dir4[4][2] = {{1,0},{-1,0},{0,1},{0,-1}};
-int dir5[5][2] = {{1,0},{-1,0},{0,1},{0,-1},{0,0}};
-int dir8[8][2] = {{1,0},{-1,0},{0,1},{0,-1},{1,1},{1,-1},{-1,1},{-1,-1}};
-int dir9[9][2] = {{1,0},{-1,0},{0,1},{0,-1},{1,1},{1,-1},{-1,1},{-1,-1},{0,0}};
+const int dir4[4][2] = {{1,0},{-1,0},{0,1},{0,-1}};
+const int dir5[5][2] = {{1,0},{-1,0},{0,1},{0,-1},{0,0}};
+const int dir8[8][2] = {{1,0},{-1,0},{0,1},{0,-1},{1,1},{1,-1},{-1,1},{-1,-1}};
+const int dir9[9][2] = {{1,0},{-1,0},{0,1},{0,-1},{1,1},{1,-1},{-1,1},{-1,-1},{0,0}};
 
 const int inf = INT_MAX;
+
+// 代わりに _gcd, _lcm を使う。
+template <typename T> T gcd(T a, T b){a = abs(a); b = abs(b); if(a<b) swap(a,b); while(b>0){a %= b; swap(a,b);} return a;}
+template <typename T> T lcm(T a, T b){return (1LL * a * b) / gcd(a,b);}
 
 template <typename T> LLI power(T n, T p, T m){if(p==0) return 1LL; if(p==1) return n; LLI k = power(n, p/2, m); return ((k*k)%m*(p%2?n:1))%m;}
 
@@ -56,29 +56,31 @@ template <typename T> T floorLE(T a, T b){return a/b-(sign(a)*sign(b)<0?1:0);}
 template <typename T> T floorLT(T a, T b){if(a % b) return a/b-(sign(a)*sign(b)<0?1:0); return a/b-1;}
 
 // 二乗判定
-template <typename T> bool isSquare(T n){T rt = sqrt(n); return rt*rt == n;}
+template <typename T> bool is_square(T n){T rt = sqrt(n); return rt*rt == n;}
 
 // 約数個数
-int countDivisor(LLI n){int count = 0; for(LLI i=1LL; i*i<=n; ++i) if(n%i == 0) ++count; count = count*2-(isSquare(n)?1:0); return count;}
+int count_divisor(LLI n){int count = 0; for(LLI i=1LL; i*i<=n; ++i) if(n%i == 0) ++count; count = count*2-(isSquare(n)?1:0); return count;}
 
 // 約数列挙
-vector<LLI> listDivisors(LLI n){
+vector<LLI> divisor_list(LLI n){
   vector<LLI> temp, res;
   for(LLI i=1LL; i*i<n; ++i) if(n%i == 0) temp.push_back(i);
   for(auto i : temp) res.push_back(i);
-  if(isSquare(n)) res.push_back((LLI)sqrt(n));
+  if(is_square(n)) res.push_back((LLI)sqrt(n));
   for(auto itr=temp.rbegin(); itr!=temp.rend(); ++itr) res.push_back(n/(*itr));
   return res;
 }
 
-vector<bool> primes(int n){
+vector<bool> prime_table(int n){
   vector<bool> res(n+1, true);
   res[0] = res[1] = false;
   FOR(i,2,n) if(res[i]) for(int j=2*i; j<=n; j+=i) res[j] = false;
   return res;
 }
 
-bool isPrime(int n){
+
+
+bool is_prime(int n){
   if(n<=1) return false;
   for(int i=2; i*i<=n; ++i){
     if(n%i==0) return false;
@@ -86,13 +88,27 @@ bool isPrime(int n){
   return true;
 }
 
+// 素因数分解
+vector<int> prime_factorize(int n){
+  vector<int> res;
+  for(int i=2; i*i<=n; ++i){
+    if(n%i == 0){
+      res.push_back(i);
+      n/=i;
+      --i;
+    }
+  }
+  if(n!=1) res.push_back(n);
+  return res;
+}
 
-
-
-
-
-
-
+// n以上の最小の2の冪
+template <typename T = int>
+T minimum_power_2(T n){
+  T i = 1;
+  while(i<n) i = i<<1;
+  return i;
+}
 
 
 
@@ -421,3 +437,69 @@ int TSP(vector<vector<int>> &graph, int src){
   FOR(s,1,n) REP(i,v) if(s & (1<<i)) REP(j,v) if(!(s & (1<<j))) dp[j][s | (1<<j)] = min(dp[j][s | (1<<j)], dp[i][s] + graph[i][j]);
   return dp[src][n-1];
 }
+
+// セグメント木
+// (T, f :: T->T->T)はmonoid, eは単位元
+template <typename T> class SegmentTree{
+private:
+  int size;
+  vector<T> vec;
+  T e;
+  function<T(T,T)> f, upd;
+  
+  int aux(int x, int y, int i, int l, int r){
+    if(r<=x || y<=l) return e;
+    else if(x<=l && r<=y) return vec[i];
+    else return f(aux(x,y,i*2+1,l,(l+r)/2), aux(x,y,i*2+2,(l+r)/2,r));
+  };
+
+public:
+  SegmentTree(int n, T e, function<T(T,T)> f, function<T(T,T)> upd):
+    size(minimum_power_2(n)*2-1), vec(size, e), f(f), e(e), upd(upd){}
+  void update(int i, T x){
+    int j = i+(size+1)/2-1;
+    vec[j] = upd(vec[j], x);
+    --j;
+    while(j>=0){
+      vec[j/2] = f(vec[(j/2)*2+1], vec[(j/2)*2+2]);
+      (j /= 2) -= 1;
+    }
+  }
+
+  int find(int x, int y){return aux(x,y,0,0,(size+1)/2);}
+};
+
+// 遅延セグメント木
+template <typename T> class LazySegmentTree{
+private:
+  int size;
+  vector<T> vec;
+  function<T(T,T)> f, upd;
+  T e;
+  void propagate(int i){
+    if(i<size/2){
+      vec[i*2+1] = f(vec[i], vec[i*2+1]);
+      vec[i*2+2] = f(vec[i], vec[i*2+2]);
+      vec[i] = e;
+    }
+  }
+  void update_aux(int s, int t, int i, int l, int r, T x){
+    if(r <= s || t <= l) return;
+    else if(s <= l && r <= t) vec[i] = upd(vec[i],x);
+    else{
+      propagate(i);
+      update_aux(s,t,i*2+1,l,(l+r)/2,x);
+      update_aux(s,t,i*2+2,(l+r)/2,r,x);
+    }
+  }
+  void find_aux(int i){if(i>0) find_aux((i-1)/2); propagate(i);}
+public:
+  LazySegmentTree(int n, T e, function<T(T,T)> f, function<T(T,T)> upd):
+    size(minimum_power_2(n)*2-1), vec(size, e), f(f), e(e), upd(upd){}
+  void update(int s, int t, T x){update_aux(s,t,0,0,size/2+1,x);}
+  T find(int i){
+    int j=i+size/2;
+    find_aux((j-1)/2);
+    return vec[j];
+  }
+};

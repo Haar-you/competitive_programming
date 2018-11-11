@@ -1,5 +1,5 @@
-class FenwichTree(val n: Int){
-  private var tree: Array[Int] = Array.fill(n+1)(0) //1-index (1..n+1)
+class FenwickTree(val n: Int){
+  private var tree: Array[Int] = Array.fill(n+1)(0) //1-index (1..n)
   def init(): Unit = {tree = Array.fill(n+1)(0)}
   def update(x: Int, a: Int): Unit = {
     var i: Int = x

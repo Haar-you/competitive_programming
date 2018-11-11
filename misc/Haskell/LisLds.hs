@@ -13,7 +13,7 @@ inf = maxBound :: Int
 
 lis :: [Int] -> Int
 lis xs = runST $ do
-  dp <- newArray (1, n) inf :: (ST s (STArray s Int Int))
+  dp <- newArray (1, n) inf :: (ST s (STUArray s Int Int))
   forM_ xs $ \x -> do
     p <- lowerBound dp 1 n x
     writeArray dp p x

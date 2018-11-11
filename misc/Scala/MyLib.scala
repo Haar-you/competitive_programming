@@ -417,3 +417,24 @@ class SegmentTreeComplicated[A: ClassTag]
     aux(0,0,size/2+1)
   }
 }
+
+class RollingHash(s: String){
+  private val base: Long = 29
+  private val m: Long = 1000000007
+  private val sl = s.length
+  private val shash: Array[Long] = s.scanLeft(0: Long)((a,b) => (a*base+b)%m).toArray
+  private val pow: Array[Long] = (1 to sl).scanLeft(1: Long)((a,b) => a*base%m).toArray
+
+  def hash(i: Int, j: Int): Long = (shash(j) - shash(i) * pow(j-i) + m*m) % m
+  def hash(p: String): Long = p.foldLeft(0: Long)((a,b) => (a*base+b)%m)
+
+  def find(p: String): Array[Int] = {
+    val pl = p.length
+    val phash: Long = hash(p)
+
+    (0 to (sl-pl)).filter(i => {
+      val j = i + pl
+      hash(i,j) == phash
+    }).toArray
+  }
+}

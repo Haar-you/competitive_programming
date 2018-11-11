@@ -1,4 +1,4 @@
- =import Data.Ratio
+import Data.Ratio
 import Data.List
 
 
