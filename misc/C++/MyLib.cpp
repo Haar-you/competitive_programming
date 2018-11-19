@@ -9,9 +9,7 @@
 using namespace std;
 template <typename T> using V = vector<T>;
 template <typename T, typename U> using P = pair<T,U>;
-template <typename T, typename U> P<T,U> operator+(const P<T,U> &a, const P<T,U> &b){return {a.first + b.first, a.second + b.second};}
-template <typename T, typename U> P<T,U> operator-(const P<T,U> &a, const P<T,U> &b){return {a.first - b.first, a.second - b.second};}
-template <typename T> void cout_join(vector<T> &v,string d=" "){REP(i,v.size()){if(i>0)cout<<d;cout<<v[i];}cout<<endl;}
+template <typename I> void cout_join(I s, I t, string d=" "){for(auto i=s; i!=t; ++i){if(i!=s)cout<<d;cout<<*i;}cout<<endl;}
 
 int main(){
   cin.tie(0);
@@ -20,6 +18,9 @@ int main(){
   
   return 0;
 }
+
+template <typename T, typename U> P<T,U> operator+(const P<T,U> &a, const P<T,U> &b){return {a.first + b.first, a.second + b.second};}
+template <typename T, typename U> P<T,U> operator-(const P<T,U> &a, const P<T,U> &b){return {a.first - b.first, a.second - b.second};}
 
 const int dir4[4][2] = {{1,0},{-1,0},{0,1},{0,-1}};
 const int dir5[5][2] = {{1,0},{-1,0},{0,1},{0,-1},{0,0}};
@@ -503,3 +504,43 @@ public:
     return vec[j];
   }
 };
+
+// KMP algorithm
+class KMP{
+private:
+  string p;
+  vector<int> table;
+public:
+  KMP(string p): p(p), table(p.size(), 0){
+    int j=0;
+    FOR(i,1,p.size()){
+      if(p[i] == p[j]) table[i] = j++;
+      else {table[i] = j; j = 0;}
+    }
+  }
+  
+  int search(string s, int i=0){
+    int j=0;
+    while(i<s.size() && j<p.size()){
+      if(s[i] == p[j]){++j; ++i;}
+      else if(j == 0) ++i;
+      else j = table[j];
+    }
+    if(j==p.size()) return i-j;
+    return s.size();
+  }
+};
+
+// 最大二部マッチング
+int bipartite_matching(vector<pair<int,int>> edges, int x, int y){
+  vector<vector<pair<int,int>>> graph(x+y+2);
+
+  int s=x+y, t=s+1;
+  
+  for(auto p : edges) graph[p.first].push_back(make_pair(x+p.second,1));
+  REP(i,x) graph[s].push_back(make_pair(i,1));
+  FOR(i,x,x+y) graph[i].push_back(make_pair(t,1));
+
+  Dinic d(graph,s,t);
+  return d.flow;
+}
