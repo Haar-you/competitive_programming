@@ -9,7 +9,7 @@
 using namespace std;
 template <typename T> using V = vector<T>;
 template <typename T, typename U> using P = pair<T,U>;
-template <typename I> void cout_join(I s, I t, string d=" "){for(auto i=s; i!=t; ++i){if(i!=s)cout<<d;cout<<*i;}cout<<endl;}
+template <typename I> void join(ostream &ost, I s, I t, string d=" "){for(auto i=s; i!=t; ++i){if(i!=s)ost<<d; ost<<*i;}ost<<endl;}
 
 int main(){
   cin.tie(0);
@@ -18,6 +18,8 @@ int main(){
   
   return 0;
 }
+
+template <typename T> using rev_priority_queue = priority_queue<T,vector<T>,greater<T>>;
 
 template <typename T, typename U> P<T,U> operator+(const P<T,U> &a, const P<T,U> &b){return {a.first + b.first, a.second + b.second};}
 template <typename T, typename U> P<T,U> operator-(const P<T,U> &a, const P<T,U> &b){return {a.first - b.first, a.second - b.second};}
@@ -29,7 +31,7 @@ const int dir9[9][2] = {{1,0},{-1,0},{0,1},{0,-1},{1,1},{1,-1},{-1,1},{-1,-1},{0
 
 const int inf = INT_MAX;
 
-// 代わりに _gcd, _lcm を使う。
+// 代わりに __gcd, __lcm を使う。
 template <typename T> T gcd(T a, T b){a = abs(a); b = abs(b); if(a<b) swap(a,b); while(b>0){a %= b; swap(a,b);} return a;}
 template <typename T> T lcm(T a, T b){return (1LL * a * b) / gcd(a,b);}
 
@@ -169,27 +171,28 @@ vector<T> dijkstra(vector<vector<pair<int,T>>> &graph, int src){
   int n = graph.size();
   vector<T> cost(n, -1);
   vector<bool> check(n, false);
-  priority_queue<pair<T,int>, vector<pair<T,int>>, greater<pair<T,int>>> pq;
+  rev_priority_queue<pair<T,int>> pq;
 
   cost[src] = 0;
   pq.push(make_pair(0,src));
 
   while(!pq.empty()){
-    pair<T,int> temp = pq.top(); pq.pop();
-    int v = temp.second;
-    T d = temp.first;
-    check[v] = true;
+    int i; T d;
+    tie(d,i) = pq.top(); pq.pop();
+    check[i] = true;
 
-    for(auto next : graph[v]){
-      int u = next.first;
-      T c = next.second;
+    for(auto &next : graph[i]){
+      int j; T c;
+      tie(j,c) = next;
 
-      if(cost[u] < 0){
-	cost[u] = d + c;
-	pq.push(make_pair(cost[u], u));
+      if(cost[j] < 0){
+	cost[j] = d + c;
+	pq.push(make_pair(cost[j], j));
       }else{
-	cost[u] = min(cost[u], d + c);
-	if(!check[u]) pq.push(make_pair(cost[u], u));
+	if(cost[j] > d+c){
+	  cost[j] = min(cost[j], d + c);
+	  if(!check[j]) pq.push(make_pair(cost[j], j));
+	}
       }
     }
   }
@@ -543,4 +546,32 @@ int bipartite_matching(vector<pair<int,int>> edges, int x, int y){
 
   Dinic d(graph,s,t);
   return d.flow;
+}
+
+// 拡張ユークリッド互除法
+tuple<LLI,LLI,LLI> extGCD(LLI a, LLI b){
+  if(b == 0) return make_tuple(a,1,0);
+  LLI d,p,q;
+  tie(d,q,p) = extGCD(b,(a+b)%b);
+  return make_tuple(d,p,q-a/b*p);
+}
+
+// Chinese Remainder Algorithm
+bool CRA(LLI b1, LLI m1, LLI b2, LLI m2, LLI &r, LLI &m){
+  LLI p,q,d; tie(d,p,q) = extGCD(m1,m2);
+  if((b2-b1) % d != 0) return false;
+  m = m1 * m2 / d;
+  LLI t = ((b2-b1) * p / d) % (m2 / d);
+  r = (b1 + m1 * t + m) % m;
+  return true;
+}
+
+bool CRA(vector<LLI> &bs, vector<LLI> &ms, LLI &r, LLI &m){
+  LLI R=0,M=1;
+  REP(i,bs.size()){
+    if(!CRA(R,M,bs[i],ms[i],r,m)) return false;
+    R = r;
+    M = m;
+  }
+  return true;
 }
