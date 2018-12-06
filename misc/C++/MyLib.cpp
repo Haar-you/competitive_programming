@@ -5,6 +5,7 @@
 #define REPE(v, n) FORE(v, 0, n)
 #define REV(v, a, b) for(int v = (a); v >= (b); --v)
 #define ALL(x) (x).begin(), (x).end()
+#define ITR(it, c) for(auto it = (c).begin(); it != (c).end(); ++it)
 #define LLI long long int
 using namespace std;
 template <typename T> using V = vector<T>;
@@ -109,9 +110,31 @@ vector<int> prime_factorize(int n){
 template <typename T = int>
 T minimum_power_2(T n){
   T i = 1;
-  while(i<n) i = i<<1;
+  while(i<n) i = (i<<1);
   return i;
 }
+
+// 二分探索
+// fが適当なxの前後でtrueからfalseに変わる場合tfはtrue, falseからtrueに変わる場合tfはfalse.
+LLI my_binary_search(LLI lower, LLI upper, function<bool(LLI)> f, bool tf=true){
+  LLI mid;
+  while(abs(upper-lower)>1){
+    mid = (lower+upper)/2;
+    
+    if(f(mid)^(!tf)) lower = mid;
+    else upper = mid;
+  }
+  return upper;
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -316,12 +339,12 @@ private:
   LLI base, mod;
   int sl;
   vector<LLI> shash, pow;
-  LLI hash(int i, int j){return (shash[j] - shash[i] * pow[j-i] + mod*mod) % mod;}
 public:
   RollingHash(string _str, LLI _base, LLI _mod): str(_str), base(_base), mod(_mod), sl(str.size()), pow(sl+1), shash(sl+1){
     pow[0] = 1; shash[0] = 0;
     FORE(i,1,sl){shash[i] = (shash[i-1]*base+str[i-1]) % mod; pow[i] = pow[i-1]*base % mod;}
   }
+  LLI hash(int i, int j){return (shash[j] - shash[i] * pow[j-i] + mod*mod) % mod;}
   vector<int> find(string p){
     vector<int> r;
     int pl = p.size();
@@ -575,3 +598,94 @@ bool CRA(vector<LLI> &bs, vector<LLI> &ms, LLI &r, LLI &m){
   }
   return true;
 }
+
+// 連続部分和の最大値
+int max_partial_sum(vector<int> &v){
+  int t = v[0], ans = t;
+  FOR(i,1,v.size()) ans = max(ans, t = max(t+v[i], v[i]));
+  return ans;
+}
+
+// Z-algorithm
+// 最長共通接頭辞の長さ配列
+template<typename T> vector<int> Z_algorithm(const T &s){
+  int n = s.size();
+  vector<int> v(n, 0);
+  v[0] = n;
+  int j = 0;
+  
+  FOR(i,1,n){
+    while(i+j<n && s[j]==s[i+j]) ++j;
+    v[i] = j;
+    if(j==0) continue;
+    int k = 1;
+    while(i+k<n && k+v[k]<j) v[i+k] = v[k++];
+    i += k-1, j -= k;
+  }
+  return v;
+}
+
+// Suffix Array
+class SuffixArray{
+public:
+  vector<int> sa;
+  const string str;
+  
+  SuffixArray(const string &s): sa(s.size()), str(s){
+    int n = s.size();
+    vector<int> temp(n);
+    REP(i,n) temp[i] = s[i];
+
+    for(int l=1; l<n; l*=2){
+      map<pair<int,int>, int> m2;
+      REP(i,n) m2[make_pair(temp[i], i+l>=n?-1:temp[i+l])] = 0;
+      int i=0;
+      ITR(it,m2) it->second = i++;
+      REP(i,n)temp[i] = m2[make_pair(temp[i], i+l>=n?-1:temp[i+l])];
+    }
+    REP(i,n) sa[temp[i]] = i;
+  }
+
+  int operator[](int i){return sa[i];}
+
+  bool starts_with(const string &s, int k){
+    if(s.size() <= str.size()-k){
+      REP(i,s.size()){
+	if(s[i] != str[k+i]) return false;
+      }
+      return true;
+    }
+    return false;
+  }
+  
+  int lower_bound(const string &s){
+    auto f = [&](int x){
+	       REP(i,s.size()){
+		 if(sa[x]+i >= str.size()) return false;
+		 if(s[i] < str[sa[x]+i]) return true;
+		 if(s[i] > str[sa[x]+i]) return false;
+	       }
+	       return true;
+	     };
+    return my_binary_search(-1, sa.size(), f, false);
+  }
+};
+
+// 二次元累積和
+template <typename T> class Accum2D{
+public:
+  vector<vector<T>> accum;
+
+  Accum2D(vector<vector<T>> &vv){
+    int d1 = vv.size(), d2 = vv[0].size();
+    accum = vector<vector<T>>(d1+1, vector<T>(d2+1));
+    REP(i,d1) REP(j,d2) accum[i+1][j+1] = vv[i][j];
+    FORE(i,1,d1) REPE(j,d2) accum[i][j] += accum[i-1][j];
+    REPE(i,d1) FORE(j,1,d2) accum[i][j] += accum[i][j-1];
+  }
+
+  // 1-indexed
+  T sum(int x1, int y1, int x2, int y2){
+    return accum[x2][y2] - accum[x1-1][y2] - accum[x2][y1-1] + accum[x1-1][y1-1];
+  }
+};
