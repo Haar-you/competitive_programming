@@ -20,10 +20,38 @@ int main(){
   return 0;
 }
 
+// グラフ用クラス
+template <typename T> using Graph = vector<vector<T>>;
+
+template <typename Cost = int> class WEdge{
+public:
+  int to;
+  Cost cost;
+  WEdge(int to, Cost cost): to(to), cost(cost){}
+
+  static bool cmp_to_lt(const WEdge &e1, const WEdge &e2){return e1.to < e2.to;}
+  static bool cmp_cost_lt(const WEdge &e1, const WEdge &e2){return e1.cost < e2.cost;}
+  static bool cmp_to_gt(const WEdge &e1, const WEdge &e2){return e1.to > e2.to;}
+  static bool cmp_cost_gt(const WEdge &e1, const WEdge &e2){return e1.cost > e2.cost;}
+  void show(){
+    cerr << "to: " << to << " cost: " << cost << endl;
+  }
+};
+
+// 入出力ストリーム関連
+template <typename T, typename U> ostream& operator<<(ostream& os, pair<T,U> &p){
+  os << p.first << "," << p.second;
+  return os;
+}
+
+
+
+
 template <typename T> using rev_priority_queue = priority_queue<T,vector<T>,greater<T>>;
 
 template <typename T, typename U> P<T,U> operator+(const P<T,U> &a, const P<T,U> &b){return {a.first + b.first, a.second + b.second};}
 template <typename T, typename U> P<T,U> operator-(const P<T,U> &a, const P<T,U> &b){return {a.first - b.first, a.second - b.second};}
+
 
 const int dir4[4][2] = {{1,0},{-1,0},{0,1},{0,-1}};
 const int dir5[5][2] = {{1,0},{-1,0},{0,1},{0,-1},{0,0}};
@@ -33,8 +61,8 @@ const int dir9[9][2] = {{1,0},{-1,0},{0,1},{0,-1},{1,1},{1,-1},{-1,1},{-1,-1},{0
 const int inf = INT_MAX;
 
 // 代わりに __gcd, __lcm を使う。
-template <typename T> T gcd(T a, T b){a = abs(a); b = abs(b); if(a<b) swap(a,b); while(b>0){a %= b; swap(a,b);} return a;}
-template <typename T> T lcm(T a, T b){return (1LL * a * b) / gcd(a,b);}
+//template <typename T> T gcd(T a, T b){a = abs(a); b = abs(b); if(a<b) swap(a,b); while(b>0){a %= b; swap(a,b);} return a;}
+//template <typename T> T lcm(T a, T b){return (1LL * a * b) / gcd(a,b);}
 
 template <typename T> LLI power(T n, T p, T m){if(p==0) return 1LL; if(p==1) return n; LLI k = power(n, p/2, m); return ((k*k)%m*(p%2?n:1))%m;}
 
@@ -42,10 +70,46 @@ template <typename T> LLI power(T n, T p, T m){if(p==0) return 1LL; if(p==1) ret
 template <typename T> LLI modInv(T n, T p){return power(n,p-2,p);}
 
 template <typename T> LLI factorial(T n, T m){LLI k = 1LL; FORE(i,1,n) k = (k*i) % m; return k;}
-
 template <typename T> LLI combination(T n, T k, T p){if(n<k||n<0||k<0) return 0; if(n==0||k==0) return 1; return (((n*modInv(k,p))%p)*combination(n-1,k-1,p))%p;}
-
 template <typename T> LLI permutaion(T n, T k, T p){if(n<k||n<0||k<0) return 0; if(n==0||k==0) return 1; return (n * permutaion(n-1,k-1,p)) % p;}
+
+// 組み合わせ関連の前計算用クラス
+template <int mod> class MyCombination{
+public:
+  vector<LLI> facto = {1};
+  vector<LLI> ifacto = {1};
+
+  LLI factorial(int i){
+    if(i < 0) throw exception();
+    if(facto.size() <= i) facto.resize(i+1, -1);
+    if(i == 0) return facto[0] = 1;
+    int j = i;
+    for(;j>=0;--j) if(facto[j] != -1) break;
+    for(int k=j+1; k<=i; ++k) (facto[k] = facto[k-1] * k) %= mod;
+    return facto[i];
+  }
+
+  LLI factorial_inverse(int i){
+    if(i < 0) throw exception();
+    if(ifacto.size() <= i) ifacto.resize(i+1, -1);
+    if(ifacto[i] != -1) return ifacto[i];
+    ifacto[i] = modInv(factorial(i), mod);
+  }
+
+  LLI P(int n, int k){
+    return (factorial(n) * factorial_inverse(n-k)) % mod;
+  }
+
+  LLI C(int n, int k){
+    return (P(n,k) * factorial_inverse(k)) % mod;
+  }
+
+  LLI H(int n, int k){
+    return C(n+k-1, n);
+  }
+};
+
+
 // 符号関数
 template <typename T> int sign(T n){return (n>0)-(n<0);}
 
@@ -63,7 +127,7 @@ template <typename T> T floorLT(T a, T b){if(a % b) return a/b-(sign(a)*sign(b)<
 template <typename T> bool is_square(T n){T rt = sqrt(n); return rt*rt == n;}
 
 // 約数個数
-int count_divisor(LLI n){int count = 0; for(LLI i=1LL; i*i<=n; ++i) if(n%i == 0) ++count; count = count*2-(isSquare(n)?1:0); return count;}
+int count_divisor(LLI n){int count = 0; for(LLI i=1LL; i*i<=n; ++i) if(n%i == 0) ++count; count = count*2-(is_square(n)?1:0); return count;}
 
 // 約数列挙
 vector<LLI> divisor_list(LLI n){
@@ -81,8 +145,6 @@ vector<bool> prime_table(int n){
   FOR(i,2,n) if(res[i]) for(int j=2*i; j<=n; j+=i) res[j] = false;
   return res;
 }
-
-
 
 bool is_prime(int n){
   if(n<=1) return false;
@@ -202,6 +264,8 @@ vector<T> dijkstra(vector<vector<pair<int,T>>> &graph, int src){
   while(!pq.empty()){
     int i; T d;
     tie(d,i) = pq.top(); pq.pop();
+
+    if(check[i]) continue;
     check[i] = true;
 
     for(auto &next : graph[i]){
@@ -259,6 +323,16 @@ vector<vector<T>> warshallfloyd(vector<vector<pair<int,T>>> &graph, bool &has_ne
   REP(i,n) for(auto v : graph[i]) cost[i][v.first] = v.second;
   REP(k,n) REP(i,n) REP(j,n) if(cost[i][k] < inf && cost[k][j] < inf) cost[i][j] = min(cost[i][j], cost[i][k]+cost[k][j]);
   REP(i,n) if(cost[i][i] < 0) has_negative_cycle = true;
+  return cost;
+}
+
+template <typename T>
+vector<vector<T>> warshallfloyd(vector<vector<pair<int,T>>> &graph){
+  int n = graph.size();
+  vector<vector<T>> cost(n, vector<T>(n,inf));
+  REP(i,n) cost[i][i] = 0;
+  REP(i,n) for(auto v : graph[i]) cost[i][v.first] = v.second;
+  REP(k,n) REP(i,n) REP(j,n) if(cost[i][k] < inf && cost[k][j] < inf) cost[i][j] = min(cost[i][j], cost[i][k]+cost[k][j]);
   return cost;
 }
 
@@ -689,3 +763,184 @@ public:
     return accum[x2][y2] - accum[x1-1][y2] - accum[x2][y1-1] + accum[x1-1][y1-1];
   }
 };
+
+// 一次元累積和
+template <typename T> class Accum{
+public:
+  vector<T> accum;
+
+  Accum(vector<T> &v){
+    int n = v.size();
+    accum = vector<T>(n+1);
+    REP(i,n) accum[i+1] = accum[i] + v[i];
+  }
+
+  // 1-indexed
+  T sum(int i, int j){
+    return accum[j] - accum[i-1];
+  }
+};
+
+// 動的セグメント木
+template <typename M> class DynamicSegmentTree{
+  using Op = function<M(M,M)>;
+  class Node{
+  public:
+    M val;
+    Node *left = nullptr, *right = nullptr;
+    Node(const M &val): val(val) {}
+  };
+  
+  Node *root = nullptr;
+  LLI size;
+  M zero;
+  Op op;
+  unordered_map<LLI, Node*> umap;
+
+  Node* _update(Node *node, LLI l, LLI r, LLI pos, const M &val){
+    LLI m = (l+r)/2;
+    if(r-l == 1){
+      if(node) node->val = op(node->val, val);
+      else node = new Node(val);
+      umap[pos] = node;
+    }else{
+      if(!node) node = new Node(val);
+      if(pos<m) node->left = _update(node->left, l, m, pos, val);
+      else node->right = _update(node->right, m, r, pos, val);
+      node->val = op((node->left ? (node->left)->val : zero), (node->right ? (node->right)->val : zero));
+    }
+    return node;
+  }
+
+  M _query(Node* node, LLI l, LLI r, LLI x, LLI y){
+    if(!node) return zero;
+    LLI m = (l+r)/2;
+    if(x <= l && r <= y) return node ? node->val : zero;
+    if(r < x || y < l) return zero;
+    return op(_query(node->left, l, m, x, y), _query(node->right, m, r, x, y));
+  }
+
+public:
+  DynamicSegmentTree(LLI n, const M &zero, Op op): size(pow(2,ceil(log2(n)))), zero(zero), op(op){ // [0,2^n)
+    root = new Node(zero);
+  }
+
+  void update(LLI i, M &x){
+    _update(root, 0, size, i, x);
+  }
+
+  M query(LLI x, LLI y){
+    return _query(root, 0, size, x, y);
+  }
+
+  M operator[](LLI i) const{
+    if(umap.find(i) != umap.end()) return umap[i]->val;
+    else return zero;
+  }
+};
+
+// 動的遅延セグメント木
+template <typename M> class DynamicLazySegmentTree{
+  using Op = function<M(M,M)>;
+  class Node{
+  public:
+    M val;
+    Node *left = nullptr, *right = nullptr;
+    Node(const M &val): val(val) {}
+  };
+  
+  Node *root = nullptr;
+  LLI size;
+  M zero;
+  Op op;
+  unordered_map<LLI, Node*> umap;
+
+  Node* propagate(Node *node, LLI l, LLI r){
+    if(r-l > 1){
+      int m = (l+r)/2;
+      if(node->left) (node->left)->val = op(node->val, (node->left)->val);
+      else node->left = new Node(node->val);
+
+      if(node->right) (node->right)->val = op(node->val, (node->right)->val);
+      else node->right = new Node(node->val);
+
+      node->val = zero;
+    }
+    return node;
+  }
+
+  Node* _update(Node *node, LLI l, LLI r, LLI x, LLI y, const M &val){
+    LLI m = (l+r)/2;
+    if(r-l == 1){
+      if(x <= l && r <= y) node->val = op(node->val, val);
+      umap[l] = node;
+      return node;
+    }
+    if(r < x || y < l) return node;
+    else if(x <= l && r <= y) node->val = op(node->val, val);
+    else{
+      propagate(node, l, r);
+      _update(node->left, l, m, x, y, val);
+      _update(node->right, m, r, x, y, val);
+    }
+    return node;
+  }
+
+  Node* _query(Node* node, LLI l, LLI r, LLI x){
+    if(r-l == 1){
+      umap[l] = node;
+      return node;
+    }
+    propagate(node, l, r);
+    int m = (l+r)/2;
+    if(x < m) _query(node->left, l, m, x);
+    else _query(node->right, m, r, x);
+    return node;
+  }
+
+public:
+  DynamicLazySegmentTree(LLI n, const M &zero, Op op): size(pow(2,ceil(log2(n)))), zero(zero), op(op){ // [0,2^n)
+    root = new Node(zero);
+  }
+
+  void update(LLI s, LLI t, M &x){
+    _update(root, 0, size, s, t, x);
+  }
+
+  M query(LLI x){
+    _query(root, 0, size, x);
+    return umap[x]->val;
+  }
+};
+
+// SparseTable
+template <typename T> class SparseTable{
+  using Op = function<T(T,T)>;
+  Op f;
+  vector<vector<T>> a;
+  vector<int> log_table;
+public:
+  SparseTable(vector<T> &v, Op f): f(f){
+    int n = v.size();
+    int logn = 0;
+    while((1<<logn) <= n) ++logn;
+    
+    a = vector<vector<T>>(n, vector<T>(logn));
+    REP(i,n) a[i][0] = v[i];
+    FOR(j,1,logn) REP(i,n) a[i][j] = f(a[i][j-1], a[min(n-1, i+(1<<(j-1)))][j-1]);
+
+    log_table = vector<int>(n+1);
+    FOR(i,2,n+1) log_table[i] = log_table[i>>1] + 1;
+  }
+  
+  T query(int s, int t){
+    int k = log_table[t-s+1];
+    return f(a[s][k], a[t-(1<<k)+1][k]);
+  }
+};
+
+
+
+
+
+
