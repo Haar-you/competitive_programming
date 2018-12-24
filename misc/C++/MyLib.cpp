@@ -22,6 +22,7 @@ int main(){
 
 // グラフ用クラス
 template <typename T> using Graph = vector<vector<T>>;
+template <typename T> using Tree = vector<vector<T>>;
 
 template <typename Cost = int> class WEdge{
 public:
@@ -44,6 +45,15 @@ template <typename T, typename U> ostream& operator<<(ostream& os, pair<T,U> &p)
   return os;
 }
 
+template <typename T, typename U> istream& operator>>(istream &is, pair<T,U> &p){
+  is >> p.first >> p.second;
+  return is;
+}
+
+template <typename T> istream& operator>>(istream &is, vector<T> &v){
+  for(auto &a : v) is >> a;
+  return is;
+}
 
 
 
@@ -490,42 +500,78 @@ public:
 
 
 //Dinic algorithm (maximum flow algrithm)
-class Dinic{
+template <typename T> class Dinic{
 private:
-  vector<vector<pair<int,int>>> graph;
+  vector<vector<pair<int,T>>> graph;
   int size, s, t;
-  vector<vector<int>> cap;
+  vector<vector<T>> cap;
   vector<int> level;
+  
   bool buildLevel(){
     fill(ALL(level), 0);
     level[s] = 1;
     deque<int> deq = {s};
     while(!deq.empty()){
       int cur = deq.front(); deq.pop_front();
-      REP(i,size) if(level[i]==0 && cap[cur][i]>0){level[i] = level[cur] + 1; deq.push_back(i);}
+      REP(i,size)
+	if(level[i]==0 && cap[cur][i]>0){
+	  level[i] = level[cur] + 1;
+	  deq.push_back(i);
+	}
     }
     return level[t] != 0;
   }
-  void dfs(vector<int> &path, int &flow){
+  void dfs(vector<int> &path, T &flow){
     if(path.empty()) return;
     int cur = path.back();
     if(cur == t){
-      int f = inf;
+      T f = inf;
       FOR(i,1,path.size()) f = min(f, cap[path[i-1]][path[i]]);
-      FOR(i,1,path.size()){cap[path[i-1]][path[i]] -= f; cap[path[i]][path[i-1]] += f;}
+      FOR(i,1,path.size()){
+	cap[path[i-1]][path[i]] -= f;
+	cap[path[i]][path[i-1]] += f;
+      }
       flow += f;
     }else{
-      REP(i,size){if(cap[cur][i]>0 && level[i]>level[cur]){path.push_back(i); dfs(path, flow); path.pop_back();}}
+      REP(i,size){
+	if(cap[cur][i]>0 && level[i]>level[cur]){
+	  path.push_back(i);
+	  dfs(path, flow);
+	  path.pop_back();
+	}
+      }
     }
   }
-  int augment(){int f = 0; vector<int> path = {s}; dfs(path, f); return f;}
-  int loop(){int f = 0; while(buildLevel()) f += augment(); return f;}
+  T augment(){
+    T f = 0;
+    vector<int> path = {s};
+    dfs(path, f);
+    return f;
+  }
+  T loop(){
+    T f = 0;
+    while(buildLevel()) f += augment();
+    return f;
+  }
+
 public:
-  int flow;
-  Dinic(vector<vector<pair<int,int>>> &_graph, int _s, int _t):
-    graph(_graph), size(graph.size()), s(_s), t(_t), cap(size, vector<int>(size, 0)), level(size, 0){
-    REP(i,size) for(auto p : graph[i]){int j = p.first, d = p.second; cap[i][j] += d;}
-    flow = loop();
+  Dinic(vector<vector<pair<int,T>>> &_graph): graph(_graph), size(graph.size()) {}
+
+  T query(int _s, int _t){
+    cap = vector<vector<T>>(size, vector<T>(size, 0));
+    level = vector<int>(size, 0);
+
+    REP(i,size)
+      for(auto &p : graph[i]){
+	int j = p.first;
+	T d = p.second;
+	cap[i][j] += d;
+      }
+
+    s = _s;
+    t = _t;
+
+    return loop();
   }
 };
 
@@ -939,6 +985,48 @@ public:
   }
 };
 
+class TreeUtils{
+public:
+  template <typename T> static pair<int,T> farthest(Tree<WEdge<T>> &tree, int cur, int par = -1){
+    auto d = make_pair(cur, 0);
+    for(auto &next : tree[cur]){
+      if(next.to == par) continue;
+      auto t = farthest(tree, next.to, cur);
+      t.second += next.cost;
+      if(t.second > d.second) d = t;
+    }
+    return d;
+  }
+
+  template <typename T> static void distance(Tree<WEdge<T>> &tree, int cur, int par, vector<T> &dist, T d){
+    dist[cur] = d;
+    for(auto &next : tree[cur]){
+      if(next.to == par) continue;
+      distance(tree, next.to, cur, dist, d+next.cost);
+    }
+  }
+  
+  template <typename T> static T diameter(Tree<WEdge<T>> &tree){
+    auto a = farthest(tree, 0);
+    auto b = farthest(tree, a.first);
+    return b.second;
+  }
+
+  template <typename T> static vector<T> height(Tree<WEdge<T>> &tree){
+    auto a = farthest(tree, 0);
+    auto b = farthest(tree, a.first);
+
+    int n = tree.size();
+    vector<T> d1(n), d2(n), h(n);
+
+    distance(tree, a.first, -1, d1, 0);
+    distance(tree, b.first, -1, d2, 0);
+
+    REP(i,n) h[i] = max(d1[i], d2[i]);
+    
+    return h;
+  }
+};
 
 
 
