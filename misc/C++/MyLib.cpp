@@ -6,11 +6,22 @@
 #define REV(v, a, b) for(int v = (a); v >= (b); --v)
 #define ALL(x) (x).begin(), (x).end()
 #define ITR(it, c) for(auto it = (c).begin(); it != (c).end(); ++it)
+#define EXIST(c,x) ((c).find(x) != (c).end())
 #define LLI long long int
+#define fst first
+#define snd second
+#ifdef DEBUG
+#include <boost/core/demangle.hpp>
+#define dump(x) cerr << "L" << __LINE__ << ": in " << __PRETTY_FUNCTION__ << " \e[32;1m" << boost::core::demangle(typeid(x).name()) << "\e[37m" << " " << (#x) << " = " << (x) << "\e[m" << endl;
+#else
+#define dump(x)
+#endif
 using namespace std;
 template <typename T> using V = vector<T>;
 template <typename T, typename U> using P = pair<T,U>;
 template <typename I> void join(ostream &ost, I s, I t, string d=" "){for(auto i=s; i!=t; ++i){if(i!=s)ost<<d; ost<<*i;}ost<<endl;}
+template <typename T> istream& operator>>(istream &is, vector<T> &v){for(auto &a : v) is >> a; return is;}
+template <typename T, typename U> istream& operator>>(istream &is, pair<T,U> &p){is >> p.first >> p.second; return is;}
 
 int main(){
   cin.tie(0);
@@ -45,15 +56,7 @@ template <typename T, typename U> ostream& operator<<(ostream& os, pair<T,U> &p)
   return os;
 }
 
-template <typename T, typename U> istream& operator>>(istream &is, pair<T,U> &p){
-  is >> p.first >> p.second;
-  return is;
-}
 
-template <typename T> istream& operator>>(istream &is, vector<T> &v){
-  for(auto &a : v) is >> a;
-  return is;
-}
 
 
 
@@ -77,7 +80,7 @@ const int inf = INT_MAX;
 template <typename T> LLI power(T n, T p, T m){if(p==0) return 1LL; if(p==1) return n; LLI k = power(n, p/2, m); return ((k*k)%m*(p%2?n:1))%m;}
 
 // mod逆数
-template <typename T> LLI modInv(T n, T p){return power(n,p-2,p);}
+template <typename T> LLI mod_inv(T n, T p){return power(n,p-2,p);}
 
 template <typename T> LLI factorial(T n, T m){LLI k = 1LL; FORE(i,1,n) k = (k*i) % m; return k;}
 template <typename T> LLI combination(T n, T k, T p){if(n<k||n<0||k<0) return 0; if(n==0||k==0) return 1; return (((n*modInv(k,p))%p)*combination(n-1,k-1,p))%p;}
@@ -212,52 +215,52 @@ LLI my_binary_search(LLI lower, LLI upper, function<bool(LLI)> f, bool tf=true){
 
 //unionfind木
 class UnionFind{
-  vector<int> parent, depth, size;
+  vector<int> _parent, _depth, _size;
 public:
-  UnionFind(int n): parent(n), depth(n,1), size(n,1){REP(i, n) parent[i] = i;}
-  int getRoot(int i){
-    if(parent[i] == i) return i;
-    else return parent[i] = getRoot(parent[i]);
+  UnionFind(int n): _parent(n), _depth(n,1), _size(n,1){REP(i, n) _parent[i] = i;}
+  int root(int i){
+    if(_parent[i] == i) return i;
+    else return _parent[i] = root(_parent[i]);
   }
-  bool isSame(int i, int j){return getRoot(i) == getRoot(j);}
+  bool same(int i, int j){return root(i) == root(j);}
   void merge(int i, int j){
-    int ri = getRoot(i), rj = getRoot(j);
+    int ri = root(i), rj = root(j);
     if(ri != rj){
-      if(depth[ri] < depth[rj]){
-	parent[ri] = rj; size[rj] += size[ri];
+      if(_depth[ri] < _depth[rj]){
+	_parent[ri] = rj; _size[rj] += _size[ri];
       }else{
-	parent[rj] = ri; size[ri] += size[rj];
-	if(depth[ri] == depth[rj]) ++depth[ri];
+	_parent[rj] = ri; _size[ri] += _size[rj];
+	if(_depth[ri] == _depth[rj]) ++_depth[ri];
       }
     }
   }
-  int getSize(int i){return size[getRoot(i)];}
+  int size(int i){return _size[root(i)];}
 };
 
 //重み付きunoinfind木
 class WeightedUnionFind{
-  vector<int> parent, depth, size, weight;
+  vector<int> _parent, _depth, _size, _weight;
 public:
-  WeightedUnionFind(int n): parent(n), depth(n,1), size(n,1), weight(n,0){REP(i, n) parent[i] = i;}
-  int getRoot(int i){
-    if(parent[i] == i) return i;
-    else {int p=getRoot(parent[i]); weight[i] += weight[parent[i]]; return parent[i] = p;}
+  WeightedUnionFind(int n): _parent(n), _depth(n,1), _size(n,1), _weight(n,0){REP(i, n) _parent[i] = i;}
+  int root(int i){
+    if(_parent[i] == i) return i;
+    else {int p=root(_parent[i]); _weight[i] += _weight[_parent[i]]; return _parent[i] = p;}
   }
-  int getWeight(int i){getRoot(i); return weight[i];} 
-  bool isSame(int i, int j){return getRoot(i) == getRoot(j);}
-  bool diff(int i, int j, int &res){res = getWeight(i)-getWeight(j); return isSame(i,j);}
+  int weight(int i){root(i); return _weight[i];} 
+  bool same(int i, int j){return root(i) == root(j);}
+  bool diff(int i, int j, int &res){res = weight(i)-weight(j); return same(i,j);}
   void merge(int i, int j, int w){
-    int ri = getRoot(i), rj = getRoot(j);
+    int ri = root(i), rj = root(j);
     if(ri != rj){
-      if(depth[ri] < depth[rj]){
-	parent[ri] = rj; size[rj] += size[ri]; weight[ri] = w - weight[i] + weight[j];
+      if(_depth[ri] < _depth[rj]){
+	_parent[ri] = rj; _size[rj] += _size[ri]; _weight[ri] = w - _weight[i] + _weight[j];
       }else{
-	parent[rj] = ri; size[ri] += size[rj]; weight[rj] = -w + weight[i] - weight[j];
-	if(depth[ri] == depth[rj]) ++depth[ri];
+	_parent[rj] = ri; _size[ri] += _size[rj]; _weight[rj] = -w + _weight[i] - _weight[j];
+	if(_depth[ri] == _depth[rj]) ++_depth[ri];
       }
     }
   }
-  int getSize(int i){return size[getRoot(i)];}
+  int size(int i){return _size[root(i)];}
 };
 
 //Dijkstra algorithm
@@ -355,7 +358,7 @@ vector<tuple<int,int,T>> kruskal(int n, vector<tuple<int,int,T>> &graph){
   for(auto v : graph){
     int s,t,d;
     tie(s,t,d) = v;
-    if(!uf.isSame(s,t)){
+    if(!uf.same(s,t)){
       uf.merge(s,t);
       mst.push_back(v);
     }
@@ -475,27 +478,27 @@ public:
 };
 
 //Binary Indexed Tree (1-indexed)
-class BIT_1{
+template <typename T> class BIT_1{
 private:
-  vector<int> tree;
+  vector<T> tree;
   int n;
 public:
   BIT_1(int size): tree(size+1, 0), n(size){}
-  void update(int x, int a){while(x <= n){tree[x] += a; x += (x & (-x));}}
-  int sum(int x){int a = 0; while(x > 0){a += tree[x]; x -= (x & (-x));} return a;}
-  int get(int x){return sum(x) - (x==1 ? 0 : sum(x-1));}
+  void update(int x, T a){while(x <= n){tree[x] += a; x += (x & (-x));}}
+  T sum(int x){T a = 0; while(x > 0){a += tree[x]; x -= (x & (-x));} return a;}
+  T get(int x){return sum(x) - (x==1 ? 0 : sum(x-1));}
 };
 
 //Binary Indexed Tree (0-indexed)
-class BIT_0{
+template <typename T> class BIT_0{
 private:
-  vector<int> tree;
+  vector<T> tree;
   int n;
 public:
   BIT_0(int size): tree(size, 0), n(size){}
-  void update(int x, int a){while(x < n){tree[x] += a; x |= (x + 1);}}
-  int sum(int x){int a = 0; while(x >= 0){a += tree[x]; x = (x & (x+1)) - 1;} return a;}
-  int get(int x){return sum(x) - (x==0 ? 0 : sum(x-1));}
+  void update(int x, T a){while(x < n){tree[x] += a; x |= (x + 1);}}
+  T sum(int x){T a = 0; while(x >= 0){a += tree[x]; x = (x & (x+1)) - 1;} return a;}
+  T get(int x){return sum(x) - (x==0 ? 0 : sum(x-1));}
 };
 
 
@@ -687,8 +690,8 @@ int bipartite_matching(vector<pair<int,int>> edges, int x, int y){
   REP(i,x) graph[s].push_back(make_pair(i,1));
   FOR(i,x,x+y) graph[i].push_back(make_pair(t,1));
 
-  Dinic d(graph,s,t);
-  return d.flow;
+  Dinic<int> d(graph);
+  return d.query(s,t);
 }
 
 // 拡張ユークリッド互除法
