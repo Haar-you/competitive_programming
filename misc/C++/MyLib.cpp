@@ -6,6 +6,7 @@
 #define REV(v, a, b) for(int v = (a); v >= (b); --v)
 #define ALL(x) (x).begin(), (x).end()
 #define ITR(it, c) for(auto it = (c).begin(); it != (c).end(); ++it)
+#define RITR(it, c) for(auto it = (c).rbegin(); it != (c).rend(); ++it)
 #define EXIST(c,x) ((c).find(x) != (c).end())
 #define LLI long long int
 #define fst first
@@ -22,6 +23,12 @@ template <typename T, typename U> using P = pair<T,U>;
 template <typename I> void join(ostream &ost, I s, I t, string d=" "){for(auto i=s; i!=t; ++i){if(i!=s)ost<<d; ost<<*i;}ost<<endl;}
 template <typename T> istream& operator>>(istream &is, vector<T> &v){for(auto &a : v) is >> a; return is;}
 template <typename T, typename U> istream& operator>>(istream &is, pair<T,U> &p){is >> p.first >> p.second; return is;}
+
+template <typename T> ostream& operator<<(ostream &os, vector<T> &v){os << "{";ITR(i,v){if(i!=v.begin())os << ","; os << *i;}os << "}"; return os;}
+template <typename T, typename U> ostream& operator<<(ostream& os, pair<T,U> &p){os << "(" << p.first << "," << p.second << ")"; return os;}
+
+template <typename T> T& chmin(T &a, const T &b){return a = min(a,b);}
+template <typename T> T& chmax(T &a, const T &b){return a = max(a,b);}
 
 int main(){
   cin.tie(0);
@@ -49,15 +56,6 @@ public:
     cerr << "to: " << to << " cost: " << cost << endl;
   }
 };
-
-// 入出力ストリーム関連
-template <typename T, typename U> ostream& operator<<(ostream& os, pair<T,U> &p){
-  os << p.first << "," << p.second;
-  return os;
-}
-
-
-
 
 
 template <typename T> using rev_priority_queue = priority_queue<T,vector<T>,greater<T>>;
@@ -106,7 +104,7 @@ public:
     if(i < 0) throw exception();
     if(ifacto.size() <= i) ifacto.resize(i+1, -1);
     if(ifacto[i] != -1) return ifacto[i];
-    ifacto[i] = modInv(factorial(i), mod);
+    return ifacto[i] = mod_inv(factorial(i), mod);
   }
 
   LLI P(int n, int k){
@@ -168,9 +166,9 @@ bool is_prime(int n){
 }
 
 // 素因数分解
-vector<int> prime_factorize(int n){
-  vector<int> res;
-  for(int i=2; i*i<=n; ++i){
+vector<LLI> prime_factorize(LLI n){
+  vector<LLI> res;
+  for(LLI i=2LL; i*i<=n; ++i){
     if(n%i == 0){
       res.push_back(i);
       n/=i;
@@ -402,11 +400,10 @@ int LCS(T a, T b){
 }
 
 //Longest Increasing Subsequence
-template <typename T>
-int LIS(T xs){
-  vector<int> dp(xs.size(), inf);
+template <typename T> int LIS(vector<T> &xs, T INF){
+  vector<T> dp(xs.size(), INF);
   for(auto x : xs) dp[lower_bound(ALL(dp),x)-dp.begin()] = x;
-  int i; for(i=0;i<xs.size() && dp[i]<inf;++i); return i;
+  return lower_bound(ALL(dp),INF) - dp.begin();
 }
 
 //Levenshtein distance
@@ -597,7 +594,7 @@ private:
   T e;
   function<T(T,T)> f, upd;
   
-  int aux(int x, int y, int i, int l, int r){
+  T aux(int x, int y, int i, int l, int r){
     if(r<=x || y<=l) return e;
     else if(x<=l && r<=y) return vec[i];
     else return f(aux(x,y,i*2+1,l,(l+r)/2), aux(x,y,i*2+2,(l+r)/2,r));
@@ -616,7 +613,7 @@ public:
     }
   }
 
-  int find(int x, int y){return aux(x,y,0,0,(size+1)/2);}
+  T find(int x, int y){return aux(x,y,0,0,(size+1)/2);}
 };
 
 // 遅延セグメント木
