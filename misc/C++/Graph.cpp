@@ -17,6 +17,8 @@ public:
   Edge(int to, Cost cost): to(to), cost(cost){}
   Edge(int from, int to, Cost cost): from(from), to(to), cost(cost){}
 
+  Edge rev(){return Edge(to,from,cost);}
+  
   static bool cmp_to_lt(const Edge &e1, const Edge &e2){return e1.to < e2.to;}
   static bool cmp_cost_lt(const Edge &e1, const Edge &e2){return e1.cost < e2.cost;}
   static bool cmp_to_gt(const Edge &e1, const Edge &e2){return e1.to > e2.to;}
@@ -32,7 +34,7 @@ template <typename T> using Tree = vector<vector<Edge<T>>>;
 
 //Dijkstra algorithm
 template <typename T>
-vector<T> dijkstra(vector<vector<pair<int,T>>> &graph, int src){
+vector<T> dijkstra(Graph<T> &graph, int src){
   int n = graph.size();
   vector<T> cost(n, -1);
   vector<bool> check(n, false);
@@ -48,17 +50,14 @@ vector<T> dijkstra(vector<vector<pair<int,T>>> &graph, int src){
     if(check[i]) continue;
     check[i] = true;
 
-    for(auto &next : graph[i]){
-      int j; T c;
-      tie(j,c) = next;
-
-      if(cost[j] < 0){
-	cost[j] = d + c;
-	pq.push(make_pair(cost[j], j));
+    for(auto &e : graph[i]){
+      if(cost[e.to] < 0){
+	cost[e.to] = d + e.cost;
+	pq.push(make_pair(cost[e.to], e.to));
       }else{
-	if(cost[j] > d+c){
-	  cost[j] = min(cost[j], d + c);
-	  if(!check[j]) pq.push(make_pair(cost[j], j));
+	if(cost[e.to] > d+e.cost){
+	  cost[e.to] = min(cost[e.to], d + e.cost);
+	  if(!check[e.to]) pq.push(make_pair(cost[e.to], e.to));
 	}
       }
     }
@@ -67,10 +66,9 @@ vector<T> dijkstra(vector<vector<pair<int,T>>> &graph, int src){
   return cost;
 }
 
-
 //Bellman-Ford algorithm
 template <typename T>
-vector<T> bellmanford(vector<vector<pair<int,T>>> &graph, int src, bool &has_negative_cycle){
+vector<T> bellmanford(Graph<T> &graph, int src, bool &has_negative_cycle, T inf){
   int n = graph.size();
   vector<T> cost(n, inf);
   cost[src] = 0;
@@ -78,9 +76,9 @@ vector<T> bellmanford(vector<vector<pair<int,T>>> &graph, int src, bool &has_neg
   has_negative_cycle = false;
   REP(i,n){
     REP(s,n){
-      for(auto node : graph[s]){
-	int t = node.first;
-	T d = node.second;
+      for(auto &node : graph[s]){
+	int t = node.to;
+	T d = node.cost;
 	if(cost[s] < inf && cost[t] < inf && cost[s]+d < cost[t] && i == n-1){
 	  has_negative_cycle = true;
 	  return cost;
@@ -93,6 +91,7 @@ vector<T> bellmanford(vector<vector<pair<int,T>>> &graph, int src, bool &has_neg
   
   return cost;
 }
+
 
 //Warshall-Floyd algorithm
 template <typename T>
@@ -336,3 +335,129 @@ public:
     return h;
   }
 };
+
+
+
+template <typename T> class GraphUtils{
+public:
+  // 間接点の列挙
+  static int ap_dfs(int cur, Graph<T> &graph, vector<int> &visit, vector<int> &low, vector<int> &ret, int &v){
+    if(visit[cur] != -1) return visit[cur];
+    visit[cur] = v;
+
+    int temp = v;
+    vector<int> children;
+    ++v;
+
+    for(auto &next : graph[cur]){
+      if(visit[next.to] == -1) children.push_back(next.to);
+      int t = ap_dfs(next.to, graph, visit, low, ret, v);
+      temp = min(temp, t);
+    }
+
+    low[cur] = temp;
+
+    if((cur != 0 || children.size() >= 2) && any_of(ALL(children), [&](int x){return low[x] >= visit[cur];})) ret.push_back(cur);
+
+    return low[cur];
+  }
+
+  static vector<int> articulation_points(Graph<T> &graph){
+    int n = graph.size();
+    vector<int> visit(n,-1), low(n,-1), ret;
+
+    int v = 0;
+    ap_dfs(0, graph, visit, low, ret, v);
+
+    return ret;
+  }
+
+  // 橋の列挙
+  static int br_dfs(int cur, int par, Graph<T> &graph, vector<int> &visit, vector<int> &low, vector<Edge<T>> &ret, int &v){
+    if(visit[cur] != -1) return visit[cur];
+    visit[cur] = v;
+    int temp = v;
+    ++v;
+    for(auto &next : graph[cur]){
+      if(next.to == par) continue;
+      int t = br_dfs(next.to, cur, graph, visit, low, ret, v);
+      temp = min(temp, t);
+      if(low[next.to] > visit[cur]) ret.push_back(next);
+    }  
+    return low[cur] = temp; 
+  }
+  
+  static vector<Edge<T>> bridges(Graph<T> &graph){
+    int n = graph.size();
+    vector<int> visit(n,-1), low(n,-1);
+    vector<Edge<T>> ret;
+    int v = 0;
+    br_dfs(0,-1,graph,visit,low,ret,v);
+    return ret;
+  }
+
+  // 強連結成分分解
+  static void scc_dfs(int cur, Graph<T> &graph, vector<bool> &visit, vector<int> &check){
+    visit[cur] = true;
+    for(auto &e : graph[cur]) if(!visit[e.to]) scc_dfs(e.to,graph,visit,check);
+    check.push_back(cur);
+  }
+
+  static void scc_rdfs(int cur, int i, Graph<T> &graph, vector<int> &ret){
+    ret[cur] = i;
+    for(auto &e : graph[cur]) if(ret[e.to] == -1) scc_rdfs(e.to,i,graph,ret);
+  }
+
+  static vector<int> strongly_connected_components(Graph<T> &graph){
+    int n = graph.size();
+    vector<bool> visit(n);
+    vector<int> check(n);
+
+    REP(i,n) if(!visit[i]) scc_dfs(i,graph,visit,check);
+
+    Graph<T> rgraph(n);
+    REP(i,n) for(auto &e : graph[i]) rgraph[e.to].push_back(e.rev());
+
+    vector<int> ret(n,-1);
+
+    reverse(ALL(check));
+    int i = 0;
+    for(auto c : check) if(ret[c] == -1) {scc_rdfs(c,i,rgraph,ret); ++i;}
+    
+    return ret;
+  }
+  
+};
+
+// 最大独立集合の大きさ
+// O(n*2^(n/2)) n<=40程度
+// 二部グラフでは、(最大独立集合の大きさ) = (グラフの大きさ) - (最大二部マッチングの大きさ)となるので、最大二部マッチングを用いる。
+int maximum_independent_set(vector<vector<int>> &graph){
+  int n = graph.size();
+  int h1 = n/2; //V1
+  int h2 = n-h1; //V2
+
+  vector<bool> dp1(1<<h1, true); // dp1[S] := Sが独立集合か?
+  REP(i,h1) for(auto j : graph[i]) if(j<h1) dp1[(1<<i)|(1<<j)] = false;
+  REP(i,1<<h1) if(!dp1[i]) REP(j,h1) dp1[i|(1<<j)] = false;
+
+  vector<bool> dp2(1<<h2, true); // dp2[S] := Sが独立集合か?
+  FOR(i,h1,n) for(auto j : graph[i]) if(j>=h1) dp2[(1<<(i-h1))|(1<<(j-h1))] = false;
+  REP(i,1<<h2) if(!dp2[i]) REP(j,h2) dp2[i|(1<<j)] = false;
+
+  vector<int> dp3(1<<h1, 0); // S1と接続しないV2の最大の部分集合
+  dp3[0] = (1<<h2)-1;
+  REP(i,h1){
+    for(auto j : graph[i]) if(j>=h1) dp3[1<<i] |= (1<<(j-h1));
+    dp3[1<<i] ^= ((1<<h2)-1);
+  }
+  REP(i,1<<h1) REP(j,h1) if((i&(1<<j)) == 0) dp3[i|(1<<j)] = dp3[i] & dp3[1<<j];
+
+  vector<int> dp4(1<<h2, 0); // S2の最大独立集合の大きさ
+  REP(i,1<<h2) if(dp2[i]) dp4[i] = __builtin_popcount(i);
+  REP(i,1<<h2) REP(j,h2) if((i&(1<<j)) == 0) dp4[i|(1<<j)] = max(dp4[i|(1<<j)], dp4[i]);
+
+  int ans = 0;
+  REP(i,1<<h1) if(dp1[i]) chmax(ans, __builtin_popcount(i)+dp4[dp3[i]]);
+  return ans;
+}

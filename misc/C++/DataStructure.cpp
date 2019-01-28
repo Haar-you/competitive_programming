@@ -383,3 +383,38 @@ public:
   T get(int x){return sum(x) - (x==0 ? 0 : sum(x-1));}
 };
 
+
+// 追加直線の傾きが単調減少、minクエリの値が単調増加
+template <typename T> class ConvexHullTrick{
+public:
+  deque<pair<T,T>> lines;
+
+  bool is_needless(pair<T,T> a, pair<T,T> b, pair<T,T> c){
+    return (a.snd-b.snd)*(a.fst-c.fst) >= (a.snd-c.snd)*(a.fst-b.fst);
+  }
+  
+  void add(T a, T b){
+    if(!lines.empty()){
+      auto l = lines.back();
+      if(l.fst == a){
+	if(l.snd < b) return;
+	else lines.pop_back();
+      }
+    }
+    while(lines.size()>=2 && is_needless(make_pair(a,b), lines.back(), *(lines.end()-2))){
+      lines.pop_back();
+    }
+    lines.push_back(make_pair(a,b));
+  }
+
+  T apply(pair<T,T> f, T x){
+    return f.fst*x + f.snd;
+  }
+
+  T query(T x){
+    while(lines.size()>=2 && apply(lines[0],x)>apply(lines[1],x)){
+      lines.pop_front();
+    }
+    return apply(lines[0],x);
+  }
+};

@@ -23,7 +23,12 @@
 #else
 #define dump(x)
 #endif
+#define pln(x) cout << (x) << endl
+#define gcd __gcd
+
 using namespace std;
+template <class T> constexpr T lcm(T m, T n){return m*n/gcd(m,n);}
+
 template <typename T> using V = vector<T>;
 template <typename T, typename U> using P = pair<T,U>;
 template <typename I> void join(ostream &ost, I s, I t, string d=" "){for(auto i=s; i!=t; ++i){if(i!=s)ost<<d; ost<<*i;}ost<<endl;}

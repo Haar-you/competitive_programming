@@ -18,25 +18,25 @@ public:
   const mod_int_64 operator+(const mod_int_64 &a) const {return mod_int_64((val+a.val)%M);}
   const mod_int_64 operator-(const mod_int_64 &a) const {return mod_int_64((val-a.val+M)%M);}
   const mod_int_64 operator*(const mod_int_64 &a) const {return mod_int_64((val*a.val)%M);}
-  const mod_int_64 operator/(const mod_int_64 &a) const {return mod_int_64((val*mod_int_64::mod_inv(a))%M);}
+  const mod_int_64 operator/(const mod_int_64 &a) const {return mod_int_64((val*a.mod_inv().val)%M);}
   
   const mod_int_64& operator=(const mod_int_64 &a){val = a.val; return *this;}
   const mod_int_64& operator+=(const mod_int_64 &a){(val += a.val) %= M; return *this;}
   const mod_int_64& operator-=(const mod_int_64 &a){((val -= a.val) += M) %= M; return *this;}
   const mod_int_64& operator*=(const mod_int_64 &a){(val *= a.val) %= M; return *this;}
-  const mod_int_64& operator/=(const mod_int_64 &a){(val *= mod_int_64::mod_inv(a)) %= M; return *this;}
+  const mod_int_64& operator/=(const mod_int_64 &a){(val *= a.mod_inv().val) %= M; return *this;}
 
   const bool operator==(const mod_int_64 &a) const {return val==a.val;}
+  const bool operator!=(const mod_int_64 &a) const {return val!=a.val;}
 
-  static mod_int_64 power(const mod_int_64 &a, const int64_t p){
-    if(p == 0) return 1;
-    if(p == 1) return a;
-    mod_int_64 t = mod_int_64::power(a, p/2);
-    return t*t*(p%2?a:1);
+  const mod_int_64 power(LLI p) const{
+    mod_int_64 ret = 1, e = val;
+    for(; p; e *= e, p >>= 1) if(p&1) ret *= e;
+    return ret;
   }
-
-  static mod_int_64 mod_inv(const mod_int_64 &a){
-    return mod_int_64::power(a,M-2);
+  
+  const mod_int_64 mod_inv() const{
+    return power(M-2);
   }
 };
 

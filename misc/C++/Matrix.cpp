@@ -13,6 +13,7 @@
 
 
 // 行列・ベクトル計算
+
 template <typename T> class GenericVector{
 protected:
   int _size;
@@ -30,6 +31,7 @@ public:
 
   friend ostream& operator<<(ostream &os, const GenericVector<T> &v){os << v._array; return os;}
 };
+
 
 template <typename T> class ColVector;
 template <typename T> class RowVector;
@@ -166,10 +168,10 @@ public:
     REP(i,a.row()){
       REP(j,a.row()){
 	if(i>=j){
-	  l.at(i,j) = a.at[i][j];
+	  l.at(i,j) = a[i][j];
 	  REP(k,j) l.at(i,j) -= l.at(i,k)*u.at(k,j);
 	}else{
-	  u.at(i,j) = a.at[i][j];
+	  u.at(i,j) = a[i][j];
 	  REP(k,i) u.at(i,j) -= l.at(i,k)*u.at(k,j);
 	  u.at(i,j) /= l.at(i,i);
 	}
@@ -211,3 +213,32 @@ template <typename T> Matrix<T> operator*(const RowVector<T> &a, const Matrix<T>
   REP(i,b.col()) REP(j,b.row()) ret.at(0,i) += a[j] * b[j][i];
   return ret;
 }
+
+
+template <typename T> T determinant(vector<vector<T>> m){
+  int n = m.size();
+  int s = 0;
+
+  REP(i,n){
+    if(m[i][i] == 0){
+      FOR(j,i+1,n){
+	if(m[j][i] != 0){
+	  m[i].swap(m[j]);
+	  (s += 1) %= 2;
+	  break; 
+	}
+	if(j == n-1) return 0;
+      }
+    }
+    
+    FOR(j,i+1,n){
+      T t = m[j][i] / m[i][i];
+      REP(k,n) m[j][k] -= m[i][k] * t;
+    }
+  }
+
+  T ret = s ? -1 : 1;
+  REP(i,n) ret *= m[i][i];
+  return ret;
+}
+

@@ -17,7 +17,7 @@ template <typename T> LLI combination(T n, T k, T p){if(n<k||n<0||k<0) return 0;
 template <typename T> LLI permutaion(T n, T k, T p){if(n<k||n<0||k<0) return 0; if(n==0||k==0) return 1; return (n * permutaion(n-1,k-1,p)) % p;}
 
 // 組み合わせ関連の前計算用クラス
-template <int mod> class MyCombination{
+template <int mod> class Combination{
 public:
   vector<LLI> facto = {1};
   vector<LLI> ifacto = {1};
