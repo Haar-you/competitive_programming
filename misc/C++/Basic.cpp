@@ -27,7 +27,7 @@
 #define gcd __gcd
 
 using namespace std;
-template <class T> constexpr T lcm(T m, T n){return m*n/gcd(m,n);}
+template <class T> constexpr T lcm(T m, T n){return m/gcd(m,n)*n;}
 
 template <typename T> using V = vector<T>;
 template <typename T, typename U> using P = pair<T,U>;
@@ -47,8 +47,9 @@ template <typename T, typename U> ostream& operator<<(ostream &os, const map<T,U
 template <typename T, typename U> ostream& operator<<(ostream &os, const unordered_map<T,U> &c){return out_container(os,ALL(c));}
 template <typename T, typename U> ostream& operator<<(ostream& os, const pair<T,U> &p){os << "(" << p.first << "," << p.second << ")"; return os;}
 
-template <typename T> T& chmin(T &a, const T &b){return a = min(a,b);}
-template <typename T> T& chmax(T &a, const T &b){return a = max(a,b);}
+template <typename T, typename U> T& chmin(T &a, const U &b){return a = (a<=b?a:b);}
+template <typename T, typename U> T& chmax(T &a, const U &b){return a = (a>=b?a:b);}
+template <typename T, size_t N, typename U> void fill_array(T (&a)[N], const U &v){fill((U*)a, (U*)(a+N), v);}
 
 int main(){
   cin.tie(0);

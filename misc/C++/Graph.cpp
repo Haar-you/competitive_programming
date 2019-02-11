@@ -461,3 +461,66 @@ int maximum_independent_set(vector<vector<int>> &graph){
   REP(i,1<<h1) if(dp1[i]) chmax(ans, __builtin_popcount(i)+dp4[dp3[i]]);
   return ans;
 }
+
+// 二部グラフの判定
+bool is_bipartite_graph(vector<vector<int>> &graph, LLI &a, LLI &b){
+  vector<int> check(graph.size(), -1);
+  vector<bool> visit(graph.size(), false);
+  stack<int> st;
+
+  st.push(0);
+  check[0] = 0;
+
+  while(!st.empty()){
+    auto cur = st.top(); st.pop();
+    if(visit[cur]) continue;
+    visit[cur] = true;
+
+    for(auto next : graph[cur]){
+      if(check[next] == check[cur]) return false;
+
+      if(check[next] == -1){
+	check[next] = (check[cur]==0 ? 1 : 0);
+      }
+
+      st.push(next);
+    }
+  }
+
+  a = b = 0;
+  for(auto x : check) if(x) ++a; else ++b;
+  
+  return true;
+}
+
+bool is_bipartite_graph(vector<vector<int>> &graph, int root, vector<int> &check, vector<bool> &visit, int &a, int &b){
+  stack<int> st;
+ 
+  a = 1;
+  b = 0;
+  st.push(root);
+  check[root] = 0;
+ 
+  while(!st.empty()){
+    auto cur = st.top(); st.pop();
+    if(visit[cur]) continue;
+    visit[cur] = true;
+ 
+    for(auto next : graph[cur]){
+      if(check[next] == check[cur]) return false;
+ 
+      if(check[next] == -1){
+	if(check[cur] == 0){
+	  check[next] = 1;
+	  ++b;
+	}else{
+	  check[next] = 0;
+	  ++a;
+	}
+	st.push(next);
+      }
+    }
+  }
+  
+  return true;
+}
