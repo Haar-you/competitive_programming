@@ -150,6 +150,7 @@ template <typename T, typename U> class RangeRangeSegmentTree{
   function<T(U,T,int)> g;
 
   void propagate(int i, int l){
+    if(vec2[i] == e2) return;
     if(i < size/2){
       vec2[i*2+1] = f2(vec2[i], vec2[i*2+1]);
       vec2[i*2+2] = f2(vec2[i], vec2[i*2+2]);
@@ -158,14 +159,15 @@ template <typename T, typename U> class RangeRangeSegmentTree{
     vec2[i] = e2;
   }
 
-  T update_aux(int i, int l, int r, int s, int t, U x){
+  T update_aux(int i, int l, int r, int s, int t, const U &x){
     propagate(i,r-l);
     if(r <= s || t <= l) return vec1[i];
     else if(s <= l && r <= t){
       vec2[i] = f2(vec2[i],x);
       propagate(i,r-l);
       return vec1[i];
-    }else return vec1[i] = f1(update_aux(i*2+1,l,(l+r)/2,s,t,x), update_aux(i*2+2,(l+r)/2,r,s,t,x));
+    }
+    else return vec1[i] = f1(update_aux(i*2+1,l,(l+r)/2,s,t,x), update_aux(i*2+2,(l+r)/2,r,s,t,x));
   }
   
   T query_aux(int i, int l, int r, int x, int y){
@@ -177,7 +179,7 @@ template <typename T, typename U> class RangeRangeSegmentTree{
   
 public:
   RangeRangeSegmentTree(){}
-  RangeRangeSegmentTree(int n, T e1, function<T(T,T)> f1, U e2, function<U(U,U)> f2, function<T(T,U,int)> g):
+  RangeRangeSegmentTree(int n, const T &e1, const function<T(T,T)> f1, const U &e2, const function<U(U,U)> f2, const function<T(T,U,int)> g):
     e1(e1), f1(f1), e2(e2), f2(f2), g(g){
     size = 1;
     while(size<n) size*=2;
@@ -188,7 +190,7 @@ public:
     vec2 = vector<U>(size,e2);
   }
 
-  void update(int s, int t, U x){
+  void update(int s, int t, const U &x){
     update_aux(0,0,size/2+1,s,t,x);
   }
   

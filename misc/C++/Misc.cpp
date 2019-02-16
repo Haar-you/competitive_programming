@@ -112,3 +112,16 @@ pair<double,double> quadratic_equation(double a, double b, double c){
 }
 
 
+// signed 64bit整数同士の積がオーバーフローするかどうかを判定。
+bool check_overflow_mul_ll(int64_t a, int64_t b){
+  return a >= LLONG_MAX / b;
+}
+
+// 乱数
+class my_rand{
+public:
+  mt19937 r;
+  my_rand(){
+    r = mt19937(static_cast<unsigned int>(time(nullptr)));
+  }
+};

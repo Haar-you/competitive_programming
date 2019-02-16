@@ -7,7 +7,16 @@
 
  */
 
-template <typename T> LLI power(T n, T p, T m){if(p==0) return 1LL; if(p==1) return n; LLI k = power(n, p/2, m); return ((k*k)%m*(p%2?n:1))%m;}
+//template <typename T> LLI power(T n, T p, T m){if(p==0) return 1LL; if(p==1) return n; LLI k = power(n, p/2, m); return ((k*k)%m*(p%2?n:1))%m;}
+LLI power(LLI n, LLI p, LLI m){
+  LLI ret = 1;
+  while(p>0){
+    if(p&1) (ret *= n) %= m;
+    (n *= n) %= m;
+    p /= 2;
+  }
+  return ret;
+}
 
 // mod逆数
 template <typename T> LLI mod_inv(T n, T p){return power(n,p-2,p);}
@@ -17,37 +26,37 @@ template <typename T> LLI combination(T n, T k, T p){if(n<k||n<0||k<0) return 0;
 template <typename T> LLI permutaion(T n, T k, T p){if(n<k||n<0||k<0) return 0; if(n==0||k==0) return 1; return (n * permutaion(n-1,k-1,p)) % p;}
 
 // 組み合わせ関連の前計算用クラス
-template <int mod> class Combination{
+template <LLI mod> class Combination{
 public:
   vector<LLI> facto = {1};
   vector<LLI> ifacto = {1};
 
-  LLI factorial(int i){
+  LLI factorial(LLI i){
     if(i < 0) throw exception();
     if(facto.size() <= i) facto.resize(i+1, -1);
     if(i == 0) return facto[0] = 1;
-    int j = i;
+    LLI j = i;
     for(;j>=0;--j) if(facto[j] != -1) break;
-    for(int k=j+1; k<=i; ++k) (facto[k] = facto[k-1] * k) %= mod;
+    for(LLI k=j+1; k<=i; ++k) (facto[k] = facto[k-1] * k) %= mod;
     return facto[i];
   }
 
-  LLI factorial_inverse(int i){
+  LLI factorial_inverse(LLI i){
     if(i < 0) throw exception();
     if(ifacto.size() <= i) ifacto.resize(i+1, -1);
     if(ifacto[i] != -1) return ifacto[i];
     return ifacto[i] = mod_inv(factorial(i), mod);
   }
 
-  LLI P(int n, int k){
+  LLI P(LLI n, LLI k){
     return (factorial(n) * factorial_inverse(n-k)) % mod;
   }
 
-  LLI C(int n, int k){
+  LLI C(LLI n, LLI k){
     return (P(n,k) * factorial_inverse(k)) % mod;
   }
 
-  LLI H(int n, int k){
+  LLI H(LLI n, LLI k){
     return C(n+k-1, n);
   }
 };
