@@ -25,14 +25,17 @@ public:
     else return _parent[i] = root(_parent[i]);
   }
   bool same(int i, int j){return root(i) == root(j);}
-  void merge(int i, int j){
+  int merge(int i, int j){
     int ri = root(i), rj = root(j);
+    if(ri == rj) return ri;
     if(ri != rj){
       if(_depth[ri] < _depth[rj]){
 	_parent[ri] = rj; _size[rj] += _size[ri];
+	return rj;
       }else{
 	_parent[rj] = ri; _size[ri] += _size[rj];
 	if(_depth[ri] == _depth[rj]) ++_depth[ri];
+	return ri;
       }
     }
   }
@@ -64,6 +67,43 @@ public:
   }
   int size(int i){return _size[root(i)];}
 };
+
+// 部分永続Unionfind
+class partially_persistent_unionfind{
+  int N;
+  vector<vector<pair<int,int>>> P;
+  int T = 0;
+  vector<int> rank;
+
+public:
+  partially_persistent_unionfind(int N): N(N), P(N), rank(N,1){
+    REP(i,N) P[i].push_back({0,i});
+  }
+  
+  int root(int i, int t){
+    if(t >= P[i].back().fst && P[i].back().snd != i) return root(P[i].back().snd, t);
+    return i;
+  }
+
+  bool same(int u, int v, int t){
+    return root(u,t) == root(v,t);
+  }
+
+  void merge(int u, int v){
+    u = root(u, T);
+    v = root(v, T);
+    ++T;
+
+    if(u==v) return;
+    if(rank[u] < rank[v]){
+      P[u].push_back({T,v});
+    }else{
+      P[v].push_back({T,u});
+      if(rank[u] == rank[v]) ++rank[u];
+    }
+  }
+};
+
 
 // セグメント木
 // (T, f :: T->T->T)はmonoid, eは単位元
@@ -386,37 +426,84 @@ public:
 };
 
 
-// 追加直線の傾きが単調減少、minクエリの値が単調増加
-template <typename T> class ConvexHullTrick{
+// ConvexHullTrick
+// 追加直線の傾き、クエリの値がともに単調性をもつバージョン
+// MIN: true -> minクエリ, false -> maxクエリ
+// ADD_INC: true -> 追加直線の傾きが単調増加, false -> 追加直線の傾きが単調減少
+// クエリが単調減少のバージョンは未検証。
+template <typename T, bool MIN, bool ADD_INC> class ConvexHullTrick{
 public:
   deque<pair<T,T>> lines;
 
-  bool is_needless(pair<T,T> a, pair<T,T> b, pair<T,T> c){
+  bool is_needless(const pair<T,T> &a, const pair<T,T> &b, const pair<T,T> &c){
     return (a.snd-b.snd)*(a.fst-c.fst) >= (a.snd-c.snd)*(a.fst-b.fst);
   }
   
-  void add(T a, T b){
+  void add(const T &a, const T &b){
     if(!lines.empty()){
-      auto l = lines.back();
+      pair<T,T> l;
+
+      if((MIN && !ADD_INC) || (!MIN && ADD_INC)) l = lines.back();
+      else l = lines.front();
+      
       if(l.fst == a){
-	if(l.snd < b) return;
-	else lines.pop_back();
+	if(MIN){ // minクエリ
+	  if(l.snd < b) return;
+	}else{ // maxクエリ
+	  if(l.snd > b) return;
+	}
+
+	if((MIN && !ADD_INC) || (!MIN && ADD_INC)) lines.pop_back();
+	else lines.pop_front();
       }
     }
-    while(lines.size()>=2 && is_needless(make_pair(a,b), lines.back(), *(lines.end()-2))){
-      lines.pop_back();
+
+    if((MIN && !ADD_INC) || (!MIN && ADD_INC)){
+      while(lines.size()>=2 && is_needless(make_pair(a,b), lines.back(), *(lines.end()-2))){
+	lines.pop_back();
+      }
+      lines.push_back(make_pair(a,b));
+    }else{
+      while(lines.size()>=2 && is_needless(make_pair(a,b), lines[0], lines[1])){
+	lines.pop_front();
+      }
+      lines.push_front(make_pair(a,b));
     }
-    lines.push_back(make_pair(a,b));
   }
 
-  T apply(pair<T,T> f, T x){
+  T apply(const pair<T,T> &f, const T &x){
     return f.fst*x + f.snd;
   }
 
-  T query(T x){
-    while(lines.size()>=2 && apply(lines[0],x)>apply(lines[1],x)){
-      lines.pop_front();
+  T query(const T &x){
+    // minクエリ　かつ　追加直線の傾きが単調減少
+    if(MIN && !ADD_INC){
+      while(lines.size()>=2 && apply(lines[0],x)>apply(lines[1],x)){
+	lines.pop_front();
+      }
     }
+
+    // maxクエリ　かつ　追加直線の傾きが単調増加
+    else if(!MIN && ADD_INC){
+      while(lines.size()>=2 && apply(lines[0],x)<apply(lines[1],x)){
+	lines.pop_front();
+      }
+    }
+
+    // minクエリ　かつ　追加直線の傾きが単調増加
+    else if(MIN && ADD_INC){
+      while(lines.size()>=2 && apply(lines.back(),x)>apply(*(lines.end()-2),x)){
+	lines.pop_back();
+      }
+    }
+
+    // maxクエリ　かつ　追加直線の傾きが単調減少
+    else{
+      while(lines.size()>=2 && apply(lines.back(),x)<apply(*(lines.end()-2),x)){
+	lines.pop_back();
+      }
+    }
+    
     return apply(lines[0],x);
   }
 };

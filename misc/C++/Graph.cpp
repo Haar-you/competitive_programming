@@ -158,6 +158,14 @@ public:
     REV(k, log2n-1, 0) if(parent[a][k] != parent[b][k]){a = parent[a][k]; b = parent[b][k];}
     return parent[a][0];
   }
+
+  int get_depth(int a){
+    return depth[a];
+  }
+ 
+  int distance(int a, int b){
+    return depth[a] + depth[b] - 2 * depth[query(a,b)];
+  }
 };
 
 
@@ -426,7 +434,50 @@ public:
     
     return ret;
   }
-  
+
+  // 二重辺連結成分分解
+  static vector<vector<int>> two_edge_connected_components(const Graph<T> &graph){
+    int n = graph.size();
+    vector<vector<int>> ret;
+    vector<int> order(n,-1);
+    stack<int> S;
+    vector<bool> inS(n,false);
+    stack<int> roots;
+    int v = 0;
+    
+    function<void(int,int)> dfs =
+      [&](int cur, int par){
+	order[cur] = v; ++v;
+	S.push(cur);
+	inS[cur] = true;
+	roots.push(cur);
+ 
+	for(auto &e : graph[cur]){
+	  if(order[e.to] == -1){
+	    dfs(e.to, cur);
+	  }else if(e.to != par && inS[e.to]){
+	    while(order[roots.top()] > order[e.to]) roots.pop();
+	  }
+	}
+ 
+	if(cur == roots.top()){
+	  vector<int> temp;
+ 
+	  while(1){
+	    auto node = S.top(); S.pop();
+	    inS[node] = false;
+	    temp.push_back(node);
+	    if(node == cur) break;
+	  }
+	  
+	  ret.push_back(temp);
+	  roots.pop();
+	}
+      };
+    
+    REP(i,n) if(order[i] == -1) dfs(i, -1);
+    return ret;
+  }
 };
 
 // 最大独立集合の大きさ
@@ -524,3 +575,32 @@ bool is_bipartite_graph(vector<vector<int>> &graph, int root, vector<int> &check
   
   return true;
 }
+
+// Euler tour
+class EulerTour{
+public:
+  vector<int> arr;
+  vector<int> begin, end;
+  
+  EulerTour(const vector<vector<int>> &tree){
+    begin = vector<int>(tree.size());
+    end = vector<int>(tree.size());
+    
+    function<void(int,int)> dfs =
+      [&](int cur, int par){
+	begin[cur] = arr.size();
+	arr.push_back(cur);
+	
+	for(auto next : tree[cur]){
+	  if(next == par) continue;
+	  dfs(next, cur);
+	  arr.push_back(cur);
+	}
+	end[cur] = arr.size();
+      };
+
+    dfs(0,-1);
+  }
+};
+
+
