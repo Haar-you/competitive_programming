@@ -1,7 +1,20 @@
-#ifndef COMPILE_TEST
-#define COMPILE_TEST
-#include "Basic.cpp"
+#include <bits/stdc++.h>
+#define FOR(v, a, b) for(int v = (a); v < (b); ++v)
+#define FORE(v, a, b) for(int v = (a); v <= (b); ++v)
+#define REP(v, n) FOR(v, 0, n)
+#define REPE(v, n) FORE(v, 0, n)
+#define ALL(v) (v).begin(), (v).end()
+#define LLI long long int
+
+using namespace std;
+
+#ifdef DEBUG
+#include <misc/C++/Debug.cpp>
+#else
+#define dump(x)
 #endif
+
+
 
 /*
  * 列ベクトル、行ベクトル同士の加減算・定数倍・内積
@@ -14,34 +27,22 @@
 
 // 行列・ベクトル計算
 
-template <typename T> class GenericVector{
-protected:
+template <typename T> class RowVector{
   int _size;
   vector<T> _array;
-
 public:
-  GenericVector(): _size(0), _array(_size){}
-  GenericVector(int _size): _size(_size), _array(_size){}
-  GenericVector(const vector<T> &_array): _size(_array.size()), _array(_array){}
-  GenericVector(int _size, T _init): _size(_size), _array(_size, _init){}
+  RowVector(){}
+  RowVector(int _size): _size(_size){}
+  RowVector(const vector<T> &_array): _size(_array.size()), _array(_array){}
+  RowVector(int _size, const T &_init): _size(_size), _array(_size, _init){}
 
   int size() const{return _size;}
   const T& operator[](size_t index) const{return _array[index];}
   T& operator[](size_t index){return _array[index];}
 
-  friend ostream& operator<<(ostream &os, const GenericVector<T> &v){os << v._array; return os;}
-};
+  const vector<T>& to_array() const{return _array;}
 
-
-template <typename T> class ColVector;
-template <typename T> class RowVector;
-
-template <typename T> class RowVector : public GenericVector<T>{
-public:
-  RowVector(): GenericVector<T>(){}
-  RowVector(int _size): GenericVector<T>(_size){}
-  RowVector(const vector<T> &_array): GenericVector<T>(_array){}
-  RowVector(int _size, T _init): GenericVector<T>(_size, _init){}
+  friend ostream& operator<<(ostream &os, const RowVector<T> &v){os << v._array; return os;}
   
   RowVector operator+(const RowVector<T> &a) const{vector<T> ret(this->_array); REP(i,this->_size) ret[i] += a[i]; return ret;}
   RowVector operator-(const RowVector<T> &a) const{vector<T> ret(this->_array); REP(i,this->_size) ret[i] -= a[i]; return ret;}
@@ -51,16 +52,25 @@ public:
   const RowVector& operator +=(const RowVector<T> &a){REP(i,this->_size) this->_array[i] += a[i]; return *this;}
   const RowVector& operator -=(const RowVector<T> &a){REP(i,this->_size) this->_array[i] -= a[i]; return *this;}
   const RowVector& operator *=(const T &k){REP(i,this->_size) this->_array[i] *= k; return *this;}
-
-  ColVector<T> transpose(){return ColVector<T>(this->_array);}
 };
 
-template <typename T> class ColVector : public GenericVector<T>{
+
+template <typename T> class ColVector{
+  int _size;
+  vector<T> _array;
 public:
-  ColVector(): GenericVector<T>(){}
-  ColVector(int _size): GenericVector<T>(_size){}
-  ColVector(const vector<T> &_array): GenericVector<T>(_array){}
-  ColVector(int _size, T _init): GenericVector<T>(_size, _init){}
+  ColVector(){}
+  ColVector(int _size): _size(_size){}
+  ColVector(const vector<T> &_array): _size(_array.size()), _array(_array){}
+  ColVector(int _size, const T &_init): _size(_size), _array(_size, _init){}
+
+  int size() const{return _size;}
+  const T& operator[](size_t index) const{return _array[index];}
+  T& operator[](size_t index){return _array[index];}
+
+  const vector<T>& to_array() const{return _array;}
+
+  friend ostream& operator<<(ostream &os, const ColVector<T> &v){os << v._array; return os;}
   
   ColVector operator+(const ColVector<T> &a) const{vector<T> ret(this->_array); REP(i,this->_size) ret[i] += a[i]; return ret;}
   ColVector operator-(const ColVector<T> &a) const{vector<T> ret(this->_array); REP(i,this->_size) ret[i] -= a[i]; return ret;}
@@ -70,125 +80,124 @@ public:
   const ColVector& operator +=(const ColVector<T> &a){REP(i,this->_size) this->_array[i] += a[i]; return *this;}
   const ColVector& operator -=(const ColVector<T> &a){REP(i,this->_size) this->_array[i] -= a[i]; return *this;}
   const ColVector& operator *=(const T &k){REP(i,this->_size) this->_array[i] *= k; return *this;}
-
-  RowVector<T> transpose(){return RowVector<T>(this->_array);}
 };
+
+template <typename T> RowVector<T> transpose(ColVector<T> &v){return RowVector<T>(v.to_array());}
+template <typename T> ColVector<T> transpose(RowVector<T> &v){return ColVector<T>(v.to_array());}
+
+
+
 
 
 template <typename T> class Matrix{
 private:
   int _row, _col;
-  RowVector<ColVector<T>> _mat;
+  vector<vector<T>> _mat;
 public:
   Matrix(): _row(0), _col(0), _mat(){}
-  Matrix(int _row, int _col): _row(_row), _col(_col), _mat(_row, _col){}
-  Matrix(const vector<vector<T>> &_m){
-    _row = _m.size();
-    _col = _m[0].size();
-    _mat = RowVector<ColVector<T>>(_m.size());
-    REP(i,_m.size()) _mat[i] = ColVector<T>(_m[i]);
-  }
+  Matrix(int _row, int _col): _row(_row), _col(_col), _mat(_row, vector<T>(_col)){}
+  Matrix(int _row, int _col, const T &val): _row(_row), _col(_col), _mat(_row, vector<T>(_col, val)){}
+  Matrix(const vector<vector<T>> &m): _row(m.size()), _col(m[0].size()), _mat(m){}
 
   int row() const {return _row;}
   int col() const {return _col;}
   
-  const ColVector<T>& operator[](size_t index) const{return _mat[index];}
+  const vector<T>& operator[](size_t i) const {return _mat[i];}
+  vector<T>& unsafe_row(size_t i){return _mat[i];}
   T& at(size_t r, size_t c){return _mat[r][c];}
   
-  Matrix operator+(const Matrix &a) const{
-    Matrix<T> ret(_row, _col);
-    REP(i,_row) REP(j,_col) ret.at(i,j) = _mat[i][j] + a[i][j];
-    return ret;
-  }
-
-  Matrix operator-(const Matrix &a) const{
-    Matrix<T> ret(_row, _col);
-    REP(i,_row) REP(j,_col) ret.at(i,j) = _mat[i][j] - a[i][j];
-    return ret;
-  }
-
-  Matrix operator*(const Matrix &a) const{
-    Matrix<T> ret(_row, a.col());
-    REP(i,_row) REP(j,a.col()) REP(k,_col) ret.at(i,j) += _mat[i][k] * a[k][j];
-    return ret;
-  }
-
-  Matrix operator*(const T &k) const{
-    Matrix<T> ret(_row, _col);
-    REP(i,_row) REP(j,_col) ret.at(i,j) = _mat[i][j] * k;
-    return ret;
-  }
-
-  const Matrix& operator+=(const Matrix &a){
-    REP(i,_row) _mat[i] += a[i];
-    return *this;
-  }
-
-  const Matrix& operator-=(const Matrix &a){
-    REP(i,_row) _mat[i] -= a[i];
-    return *this;
-  }
-
-  const Matrix& operator*=(const T &k){
-    REP(i,_row) _mat[i] *= k;
-    return *this;
-  }
+  Matrix operator+(const Matrix &a) const{Matrix<T> ret(_row, _col); REP(i,_row) REP(j,_col) ret.at(i,j) = _mat[i][j] + a[i][j]; return ret;}
+  Matrix operator-(const Matrix &a) const{Matrix<T> ret(_row, _col); REP(i,_row) REP(j,_col) ret.at(i,j) = _mat[i][j] - a[i][j]; return ret;}
+  Matrix operator*(const Matrix &a) const{Matrix<T> ret(_row, a.col()); REP(i,_row) REP(j,a.col()) REP(k,_col) ret.at(i,j) += _mat[i][k] * a[k][j]; return ret;}
+  Matrix operator*(const T &k) const{Matrix<T> ret(_row, _col); REP(i,_row) REP(j,_col) ret.at(i,j) = _mat[i][j] * k; return ret;}
   
+  const Matrix& operator+=(const Matrix &a){REP(i,_row) _mat[i] += a[i]; return *this;}
+  const Matrix& operator-=(const Matrix &a){REP(i,_row) _mat[i] -= a[i]; return *this;}
+  const Matrix& operator*=(const T &k){REP(i,_row) _mat[i] *= k; return *this;}
 
-  Matrix transpose(){
-    Matrix<T> ret(_col, _row);
-    REP(i,_row) REP(j,_col) ret.at(j,i) = _mat[i][j];
-    return ret;
-  }
-  
-  friend ostream& operator<<(ostream &os, const Matrix<T> &v){os << v._mat; return os;}
-
-  static Matrix unit(int size){
-    Matrix<T> ret(size, size);
-    REP(i,size) ret.at(i,i) = 1;
-    return ret;
-  }
-
-  static Matrix power(const Matrix &a, LLI k){
-    Matrix ret;
-    if(k<=0) return Matrix::unit(a.row());
-    if(k==1) return a;
-    Matrix temp = power(a, k/2);
-    ret = temp*temp;
-    if(k%2) ret = ret*a;
-    return ret;
-  }
-
-  static bool lu_decompose(const Matrix &a, Matrix &l, Matrix &u){
-    if(a.row() != a.col()) return false;
-
-    l = Matrix(a.row(), a.row());
-    u = Matrix::unit(a.row());
-
-    REP(i,a.row()){
-      REP(j,a.row()){
-	if(i>=j){
-	  l.at(i,j) = a[i][j];
-	  REP(k,j) l.at(i,j) -= l.at(i,k)*u.at(k,j);
-	}else{
-	  u.at(i,j) = a[i][j];
-	  REP(k,i) u.at(i,j) -= l.at(i,k)*u.at(k,j);
-	  u.at(i,j) /= l.at(i,i);
-	}
+  friend ostream& operator<<(ostream &os, const Matrix<T> &m){
+    REP(i,m.row()){
+      REP(j,m.col()){
+	os << m._mat[i][j] << " ";
       }
+      os << endl;
     }
-    return true;
-  }
-  
-  static T determinant(const Matrix &a){
-    Matrix l,u;
-    if(!lu_decompose(a,l,u)) return 0;
-
-    T det = 1;
-    REP(i,a.row()) det *= l[i][i];
-    return det;
+    return os;
   }
 };
+
+
+template <typename T> Matrix<T> transpose(const Matrix<T> &m){
+  Matrix<T> ret(m.col(), m.row());
+  REP(i,m.row()) REP(j,m.col()) ret.at(j,i) = m.at(i,j);
+  return ret;
+}
+
+template <typename T> Matrix<T> unit(int size){
+  Matrix<T> ret(size, size);
+  REP(i,size) ret.at(i,i) = 1;
+  return ret;
+}
+
+template <typename T> Matrix<T> power(const Matrix<T> &a, LLI k){
+  Matrix<T> ret;
+  if(k<=0) return unit<T>(a.row());
+  if(k==1) return a;
+  Matrix<T> temp = power(a, k/2);
+  ret = temp*temp;
+  if(k%2) ret = ret*a;
+  return ret;
+}
+
+template <typename T> bool lu_decompose(const Matrix<T> &a, Matrix<T> &l, Matrix<T> &u){
+  if(a.row() != a.col()) return false;
+
+  l = Matrix<T>(a.row(), a.row());
+  u = unit<T>(a.row());
+
+  REP(i,a.row()){
+    REP(j,a.row()){
+      if(i>=j){
+	l.at(i,j) = a[i][j];
+	REP(k,j) l.at(i,j) -= l.at(i,k)*u.at(k,j);
+      }else{
+	u.at(i,j) = a[i][j];
+	REP(k,i) u.at(i,j) -= l.at(i,k)*u.at(k,j);
+	u.at(i,j) /= l.at(i,i);
+      }
+    }
+  }
+  return true;
+}
+
+template <typename T> T determinant(Matrix<T> m){
+  int n = m.row();
+  int s = 0;
+
+  REP(i,n){
+    if(m.at(i,i) == 0){
+      FOR(j,i+1,n){
+	if(m.at(j,i) != 0){
+	  m.unsafe_row(i).swap(m.unsafe_row(j));
+	  (s += 1) %= 2;
+	  break; 
+	}
+	if(j == n-1) return 0;
+      }
+    }
+    
+    FOR(j,i+1,n){
+      T t = m.at(j,i) / m.at(i,i);
+      REP(k,n) m.at(j,k) -= m.at(i,k) * t;
+    }
+  }
+
+  T ret = s ? -1 : 1;
+  REP(i,n) ret *= m.at(i,i);
+  return ret;
+}
+
+
 
 template <typename T> Matrix<T> operator*(const ColVector<T> &a, const RowVector<T> &b){
   Matrix<T> ret(a.size(),b.size());
@@ -213,6 +222,9 @@ template <typename T> Matrix<T> operator*(const RowVector<T> &a, const Matrix<T>
   REP(i,b.col()) REP(j,b.row()) ret.at(0,i) += a[j] * b[j][i];
   return ret;
 }
+
+
+
 
 
 template <typename T> T determinant(vector<vector<T>> m){
@@ -242,3 +254,8 @@ template <typename T> T determinant(vector<vector<T>> m){
   return ret;
 }
 
+
+
+int main(){
+  return 0;
+}

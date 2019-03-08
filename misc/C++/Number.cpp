@@ -8,6 +8,16 @@
  */
 
 //template <typename T> LLI power(T n, T p, T m){if(p==0) return 1LL; if(p==1) return n; LLI k = power(n, p/2, m); return ((k*k)%m*(p%2?n:1))%m;}
+template <typename T> T power(T n, LLI p, const T &e, const function<T(T,T)> &f){
+  T ret = e;
+  while(p>0){
+    if(p&1) ret = f(ret, n);
+    n = f(n, n);
+    p /= 2;
+  }
+  return ret;
+}
+
 LLI power(LLI n, LLI p, LLI m){
   LLI ret = 1;
   while(p>0){
@@ -18,8 +28,31 @@ LLI power(LLI n, LLI p, LLI m){
   return ret;
 }
 
-// mod逆数
-template <typename T> LLI mod_inv(T n, T p){return power(n,p-2,p);}
+LLI mod_inv(LLI n, LLI p){return power(n,p-2,p);}
+
+LLI mod_log(LLI a, LLI b, LLI m){
+  LLI sq = sqrt(m) + 1;
+
+  unordered_map<LLI,LLI> mp;
+  LLI t = 1;
+  REP(i,sq){
+    if(!EXIST(mp,t)) mp[t] = i;
+    (t *= a) %= m;
+  }
+
+  LLI p = power(mod_inv(a, m), sq, m);
+  LLI t2 = b;
+  REP(i,sq){
+    if(EXIST(mp,t2)){
+      LLI ret = i*sq + mp[t2];
+      if(ret>0) return ret;
+    }
+    (t2 *= p) %= m;
+  }
+
+  return -1;
+}
+
 
 template <typename T> LLI factorial(T n, T m){LLI k = 1LL; FORE(i,1,n) k = (k*i) % m; return k;}
 template <typename T> LLI combination(T n, T k, T p){if(n<k||n<0||k<0) return 0; if(n==0||k==0) return 1; return (((n*modInv(k,p))%p)*combination(n-1,k-1,p))%p;}
