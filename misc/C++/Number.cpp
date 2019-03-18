@@ -7,7 +7,6 @@
 
  */
 
-//template <typename T> LLI power(T n, T p, T m){if(p==0) return 1LL; if(p==1) return n; LLI k = power(n, p/2, m); return ((k*k)%m*(p%2?n:1))%m;}
 template <typename T> T power(T n, LLI p, const T &e, const function<T(T,T)> &f){
   T ret = e;
   while(p>0){
@@ -152,6 +151,22 @@ vector<LLI> prime_factorize(LLI n){
   return res;
 }
 
+vector<LLI> prime_factorize_unique(LLI n){
+  //  if(n==1) return {1};
+  vector<LLI> res;
+  for(LLI i=2LL; i*i<=n; ++i){
+    if(n%i == 0){
+      res.push_back(i);
+      while(n%i == 0){
+	n/=i;
+      }
+    }
+  }
+  if(n!=1) res.push_back(n);
+  return res;
+}
+
+
 // n以上の最小の2の冪
 template <typename T = int> T minimum_power_2(T n){
   T i = 1;
@@ -186,3 +201,5 @@ bool CRA(vector<LLI> &bs, vector<LLI> &ms, LLI &r, LLI &m){
   }
   return true;
 }
+
+

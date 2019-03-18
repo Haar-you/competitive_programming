@@ -576,6 +576,33 @@ bool is_bipartite_graph(vector<vector<int>> &graph, int root, vector<int> &check
   return true;
 }
 
+class BipartiteGraph{
+  int n;
+  UnionFind check;
+
+public:
+  BipartiteGraph(int n): n(n), check(2*n){}
+
+  void add_diff(int i, int j){ // iとjを異なる色で塗る。
+    check.merge(i,j+n);
+    check.merge(i+n,j);
+  }
+
+  void add_same(int i, int j){ // iとjを同じ色で塗る。 = iとjを同じ端点と見做す。
+    check.merge(i,j);
+    check.merge(i+n,j+n);
+  }
+
+  bool is_bipartite_graph(int i){ // iを含む連結グラフが二部グラフかを判定する。
+    return !check.same(i,i+n);
+  }
+
+  bool is_same(int i, int j){ // iとjが同じ色で塗られているか判定する。
+    return check.same(i,j);
+  }
+};
+
+
 // Euler tour
 class EulerTour{
 public:

@@ -11,12 +11,6 @@
 #define LLI long long int
 #define fst first
 #define snd second
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-#ifndef M_E
-#define M_E 2.71828182845904523536
-#endif
 
 #ifdef DEBUG
 #include <misc/C++/Debug.cpp>
@@ -24,14 +18,11 @@
 #define dump(x)
 #endif
 
-#define pln(x) cout << (x) << endl
 #define gcd __gcd
 
 using namespace std;
 template <class T> constexpr T lcm(T m, T n){return m/gcd(m,n)*n;}
 
-template <typename T> using V = vector<T>;
-template <typename T, typename U> using P = pair<T,U>;
 template <typename I> void join(ostream &ost, I s, I t, string d=" "){for(auto i=s; i!=t; ++i){if(i!=s)ost<<d; ost<<*i;}ost<<endl;}
 template <typename T> istream& operator>>(istream &is, vector<T> &v){for(auto &a : v) is >> a; return is;}
 template <typename T, typename U> istream& operator>>(istream &is, pair<T,U> &p){is >> p.first >> p.second; return is;}

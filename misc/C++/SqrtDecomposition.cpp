@@ -79,7 +79,7 @@ public:
 };
 
 
-template <typename T> class SqrtDecomposition_RangeQuery{
+template <typename T> class SqrtDecomposition_RangeUpdate{
   vector<T> vec, buckets;
   int n;
   int sq;
@@ -87,7 +87,7 @@ template <typename T> class SqrtDecomposition_RangeQuery{
   function<T(T,T)> op;
 
 public:
-  SqrtDecomposition_RangeQuery(int n, const T &id, const function<T(T,T)> op): n(n), id(id), op(op), sq(sqrt(n)+1){
+  SqrtDecomposition_RangeUpdate(int n, const T &id, const function<T(T,T)> op): n(n), id(id), op(op), sq(sqrt(n)+1){
     vec.assign(n, id);
     buckets.assign(sq, id);
   }
