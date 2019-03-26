@@ -53,6 +53,95 @@ public:
 };
 
 
+
+
+template <typename T> class LiChaoSegmentTree{
+  using line = pair<T,T>;
+
+  struct node{
+    line l;
+    node *left, *right;
+    node(const line &l): l(l), left(nullptr), right(nullptr){}
+  };
+
+  vector<T> xs;
+  int n;
+  node *root;
+  T e;
+  function<bool(T,T)> cmp;
+  function<T(T,T)> chm;
+
+public:
+  LiChaoSegmentTree(const vector<T> _xs, const bool min_mode, const T &e): xs(_xs), n(xs.size()), root(nullptr), e(e){
+    if(min_mode){
+      cmp = [](const T &a, const T &b){return a < b;};
+      chm = [](const T &a, const T &b){return min(a,b);};
+    }else{
+      cmp = [](const T &a, const T &b){return a > b;};
+      chm = [](const T &a, const T &b){return max(a,b);};
+    }
+  }
+
+  T apply(const line &l, const T &x) const{
+    return l.fst*x + l.snd;
+  }
+
+protected:
+  node* add(node *t, const int left, const int right, line l){ // [l,r]
+    if(!t) return new node(l);
+
+    if(cmp(apply(t->l, xs[left]), apply(l, xs[left])) and cmp(apply(t->l, xs[right]), apply(l, xs[right]))){
+      return t;
+    }
+    if(!cmp(apply(t->l, xs[left]), apply(l, xs[left])) and !cmp(apply(t->l, xs[right]), apply(l, xs[right]))){
+      t->l = l;
+      return t;
+    }
+
+    int mid = (left + right) / 2;
+
+    if(!cmp(apply(t->l, xs[mid]), apply(l, xs[mid]))) swap(t->l, l);
+    if(!cmp(apply(t->l, xs[left]), apply(l, xs[left]))){
+      t->left = add(t->left, left, mid, l);
+    }else{
+      t->right = add(t->right, mid+1, right, l);
+    }
+
+    return t;
+  }
+
+public:
+  void add_line(T a, T b){
+    root = add(root, 0, n-1, make_pair(a,b));
+  }
+
+protected:
+  T query(node *t, const int left, const int right, const int i) const{
+    if(!t) return e;
+    if(right == left) return apply(t->l, xs[i]);
+    int mid = (left + right) / 2;
+    if(i <= mid) return chm(apply(t->l, xs[i]), query(t->left, left, mid, i));
+    else return chm(apply(t->l, xs[i]), query(t->right, mid+1, right, i));
+  }
+  
+public:
+  T query(const T &x) const{
+    int t = lower_bound(ALL(xs), x) - xs.begin();
+    return query(root, 0, n-1, t);
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
 int main(){
   
   return 0;
