@@ -203,3 +203,32 @@ bool CRA(vector<LLI> &bs, vector<LLI> &ms, LLI &r, LLI &m){
 }
 
 
+// Möbius関数
+/*
+  mu(1) = 1
+  mu(n) = 0 if nが平方因子を持つ
+  mu(n) = (-1)^k if nが相異なるk個の素因数に分解される
+  mu(nm) = mu(n) * mu(m) if nとmが互いに素
+*/
+/*
+  問題例
+  https://codeforces.com/contest/1139/problem/D
+*/
+vector<int> mobius(int n){
+  vector<int> ret(n+1);
+  vector<int> ps;
+  ret[1] = 1;
+  FORE(i,2,n){
+    if(is_prime[i]){
+      ps.push_back(i);
+      ret[i] = -1;
+    }
+    for(auto &j : ps){
+      if(i*j > n) break;
+      if(i%j == 0) ret[i*j] = 0;
+      else ret[i*j] = ret[i] * ret[j];
+    }
+  }
+  
+  return ret;
+}
