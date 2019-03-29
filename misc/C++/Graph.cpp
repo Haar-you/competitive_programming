@@ -168,83 +168,6 @@ public:
   }
 };
 
-
-//Dinic algorithm (maximum flow algrithm)
-template <typename T> class Dinic{
-private:
-  vector<vector<pair<int,T>>> graph;
-  int size, s, t;
-  vector<vector<T>> cap;
-  vector<int> level;
-  
-  bool buildLevel(){
-    fill(ALL(level), 0);
-    level[s] = 1;
-    deque<int> deq = {s};
-    while(!deq.empty()){
-      int cur = deq.front(); deq.pop_front();
-      REP(i,size)
-	if(level[i]==0 && cap[cur][i]>0){
-	  level[i] = level[cur] + 1;
-	  deq.push_back(i);
-	}
-    }
-    return level[t] != 0;
-  }
-  void dfs(vector<int> &path, T &flow){
-    if(path.empty()) return;
-    int cur = path.back();
-    if(cur == t){
-      T f = inf;
-      FOR(i,1,path.size()) f = min(f, cap[path[i-1]][path[i]]);
-      FOR(i,1,path.size()){
-	cap[path[i-1]][path[i]] -= f;
-	cap[path[i]][path[i-1]] += f;
-      }
-      flow += f;
-    }else{
-      REP(i,size){
-	if(cap[cur][i]>0 && level[i]>level[cur]){
-	  path.push_back(i);
-	  dfs(path, flow);
-	  path.pop_back();
-	}
-      }
-    }
-  }
-  T augment(){
-    T f = 0;
-    vector<int> path = {s};
-    dfs(path, f);
-    return f;
-  }
-  T loop(){
-    T f = 0;
-    while(buildLevel()) f += augment();
-    return f;
-  }
-
-public:
-  Dinic(vector<vector<pair<int,T>>> &_graph): graph(_graph), size(graph.size()) {}
-
-  T query(int _s, int _t){
-    cap = vector<vector<T>>(size, vector<T>(size, 0));
-    level = vector<int>(size, 0);
-
-    REP(i,size)
-      for(auto &p : graph[i]){
-	int j = p.first;
-	T d = p.second;
-	cap[i][j] += d;
-      }
-
-    s = _s;
-    t = _t;
-
-    return loop();
-  }
-};
-
 //Traveling Salesman Problem
 //O(n^2 2^n)
 int TSP(vector<vector<int>> &graph, int src){
@@ -254,21 +177,6 @@ int TSP(vector<vector<int>> &graph, int src){
   FOR(s,1,n) REP(i,v) if(s & (1<<i)) REP(j,v) if(!(s & (1<<j))) dp[j][s | (1<<j)] = min(dp[j][s | (1<<j)], dp[i][s] + graph[i][j]);
   return dp[src][n-1];
 }
-
-// 最大二部マッチング
-int bipartite_matching(vector<pair<int,int>> edges, int x, int y){
-  vector<vector<pair<int,int>>> graph(x+y+2);
-
-  int s=x+y, t=s+1;
-  
-  for(auto p : edges) graph[p.first].push_back(make_pair(x+p.second,1));
-  REP(i,x) graph[s].push_back(make_pair(i,1));
-  FOR(i,x,x+y) graph[i].push_back(make_pair(t,1));
-
-  Dinic<int> d(graph);
-  return d.query(s,t);
-}
-
 
 // Topological sort
 class TopologicalSort{
