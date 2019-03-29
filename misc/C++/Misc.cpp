@@ -125,3 +125,30 @@ public:
     r = mt19937(static_cast<unsigned int>(time(nullptr)));
   }
 };
+
+// ヒストグラム中の最大面積長方形の面積
+LLI max_rectangle_in_histogram(const vector<LLI> &h){
+  stack<pair<LLI,LLI>> st;
+  LLI ret = 0;
+
+  REP(i,(int)h.size()){
+    if(st.empty()) st.push({h[i],i});
+    else if(st.top().fst < h[i]) st.push({h[i],i});
+    else if(st.top().fst > h[i]){
+      int j = i;
+      while(not st.empty() and st.top().fst > h[i]){
+	chmax(ret, st.top().fst * (i-st.top().snd));
+	j = st.top().snd;
+	st.pop();
+      }
+      st.push({h[i],j});
+    }
+  }
+
+  while(not st.empty()){
+    chmax(ret, st.top().fst * ((int)h.size()-st.top().snd));
+    st.pop();
+  }
+  
+  return ret;
+}
