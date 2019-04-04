@@ -3,10 +3,13 @@ using namespace std;
 
 #include <boost/core/demangle.hpp>
 
-#define dump(x) \
-  cerr << "L" << __LINE__;						\
-  cerr << ": in " << __PRETTY_FUNCTION__;				\
-  cerr << " \e[32;1m" << boost::core::demangle(typeid(x).name()) << "\e[37m" << " " << (#x) << " = " << (x) << "\e[m" << endl;
+#define dump(x) dump_aux(__LINE__, __PRETTY_FUNCTION__, (#x), x)
+
+template <typename T> void dump_aux(const int line, const char *func, const char *name, const T &val){
+  cerr << "L" << line;
+  cerr << ": in" << func;
+  cerr << " \e[32;1m" << boost::core::demangle(typeid(val).name()) << "\e[37m" << " " << name << " = " << val << "\e[m" << endl;
+}
 
 template <typename Iter> ostream& out_container(ostream &os, Iter first, Iter last){
   os << "{";
