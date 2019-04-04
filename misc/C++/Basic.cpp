@@ -15,7 +15,7 @@
 #ifdef DEBUG
 #include <misc/C++/Debug.cpp>
 #else
-#define dump(x)
+#define dump(x) ((void)0)
 #endif
 
 #define gcd __gcd
@@ -27,8 +27,8 @@ template <typename I> void join(ostream &ost, I s, I t, string d=" "){for(auto i
 template <typename T> istream& operator>>(istream &is, vector<T> &v){for(auto &a : v) is >> a; return is;}
 template <typename T, typename U> istream& operator>>(istream &is, pair<T,U> &p){is >> p.first >> p.second; return is;}
 
-template <typename T, typename U> T& chmin(T &a, const U &b){return a = (a<=b?a:b);}
-template <typename T, typename U> T& chmax(T &a, const U &b){return a = (a>=b?a:b);}
+template <typename T, typename U> bool chmin(T &a, const U &b){return (a>b ? a=b, true : false);}
+template <typename T, typename U> bool chmax(T &a, const U &b){return (a<b ? a=b, true : false);}
 template <typename T, size_t N, typename U> void fill_array(T (&a)[N], const U &v){fill((U*)a, (U*)(a+N), v);}
 
 int main(){
