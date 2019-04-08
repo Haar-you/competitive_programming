@@ -4,106 +4,12 @@
 #endif
 
 /*
- * Unioin-Find tree
- * Weighted Union-Find tree
  * 点更新範囲取得のSegment tree
  * 範囲更新点取得のSegment tree
  * 範囲更新範囲取得のSegment tree
  * 点更新範囲取得の動的Segment tree
  * 範囲更新点取得の動的Segment tree
- * Sparse table
- * Binary indexed tree
  */
-
-//unionfind木
-class UnionFind{
-  vector<int> _parent, _depth, _size;
-public:
-  UnionFind(int n): _parent(n), _depth(n,1), _size(n,1){REP(i, n) _parent[i] = i;}
-  int root(int i){
-    if(_parent[i] == i) return i;
-    else return _parent[i] = root(_parent[i]);
-  }
-  bool same(int i, int j){return root(i) == root(j);}
-  int merge(int i, int j){
-    int ri = root(i), rj = root(j);
-    if(ri == rj) return ri;
-    if(ri != rj){
-      if(_depth[ri] < _depth[rj]){
-	_parent[ri] = rj; _size[rj] += _size[ri];
-	return rj;
-      }else{
-	_parent[rj] = ri; _size[ri] += _size[rj];
-	if(_depth[ri] == _depth[rj]) ++_depth[ri];
-	return ri;
-      }
-    }
-  }
-  int size(int i){return _size[root(i)];}
-};
-
-//重み付きunoinfind木
-class WeightedUnionFind{
-  vector<int> _parent, _depth, _size, _weight;
-public:
-  WeightedUnionFind(int n): _parent(n), _depth(n,1), _size(n,1), _weight(n,0){REP(i, n) _parent[i] = i;}
-  int root(int i){
-    if(_parent[i] == i) return i;
-    else {int p=root(_parent[i]); _weight[i] += _weight[_parent[i]]; return _parent[i] = p;}
-  }
-  int weight(int i){root(i); return _weight[i];} 
-  bool same(int i, int j){return root(i) == root(j);}
-  bool diff(int i, int j, int &res){res = weight(i)-weight(j); return same(i,j);}
-  void merge(int i, int j, int w){
-    int ri = root(i), rj = root(j);
-    if(ri != rj){
-      if(_depth[ri] < _depth[rj]){
-	_parent[ri] = rj; _size[rj] += _size[ri]; _weight[ri] = w - _weight[i] + _weight[j];
-      }else{
-	_parent[rj] = ri; _size[ri] += _size[rj]; _weight[rj] = -w + _weight[i] - _weight[j];
-	if(_depth[ri] == _depth[rj]) ++_depth[ri];
-      }
-    }
-  }
-  int size(int i){return _size[root(i)];}
-};
-
-// 部分永続Unionfind
-class partially_persistent_unionfind{
-  int N;
-  vector<vector<pair<int,int>>> P;
-  int T = 0;
-  vector<int> rank;
-
-public:
-  partially_persistent_unionfind(int N): N(N), P(N), rank(N,1){
-    REP(i,N) P[i].push_back({0,i});
-  }
-  
-  int root(int i, int t){
-    if(t >= P[i].back().fst && P[i].back().snd != i) return root(P[i].back().snd, t);
-    return i;
-  }
-
-  bool same(int u, int v, int t){
-    return root(u,t) == root(v,t);
-  }
-
-  void merge(int u, int v){
-    u = root(u, T);
-    v = root(v, T);
-    ++T;
-
-    if(u==v) return;
-    if(rank[u] < rank[v]){
-      P[u].push_back({T,v});
-    }else{
-      P[v].push_back({T,u});
-      if(rank[u] == rank[v]) ++rank[u];
-    }
-  }
-};
-
 
 // セグメント木
 // (T, f :: T->T->T)はmonoid, eは単位元
@@ -137,7 +43,7 @@ public:
     }
   }
 
-  T find(int x, int y){return aux(x,y,0,0,(size+1)/2);}
+  T get(int x, int y){return aux(x,y,0,0,(size+1)/2);}
 };
 
 // 遅延セグメント木
@@ -163,7 +69,7 @@ private:
       update_aux(s,t,i*2+2,(l+r)/2,r,x);
     }
   }
-  void find_aux(int i){if(i>0) find_aux((i-1)/2); propagate(i);}
+  void get_aux(int i){if(i>0) find_aux((i-1)/2); propagate(i);}
 public:
   LazySegmentTree(int n, T e, function<T(T,T)> f, function<T(T,T)> upd): f(f), e(e), upd(upd){
     size = 1;
@@ -172,9 +78,9 @@ public:
     vec = vector<T>(size, e);
   }
   void update(int s, int t, T x){update_aux(s,t,0,0,size/2+1,x);}
-  T find(int i){
+  T get(int i){
     int j=i+size/2;
-    find_aux((j-1)/2);
+    get_aux((j-1)/2);
     return vec[j];
   }
 };
@@ -234,7 +140,7 @@ public:
     update_aux(0,0,size/2+1,s,t,x);
   }
   
-  T query(int x, int y){
+  T get(int x, int y){
     return query_aux(0,0,size/2+1,x,y);
   }
 };
@@ -289,7 +195,7 @@ public:
     _update(root, 0, size, i, x);
   }
 
-  M query(LLI x, LLI y){
+  M get(LLI x, LLI y){
     return _query(root, 0, size, x, y);
   }
 
@@ -367,60 +273,12 @@ public:
     _update(root, 0, size, s, t, x);
   }
 
-  M query(LLI x){
+  M get(LLI x){
     _query(root, 0, size, x);
     return umap[x]->val;
   }
 };
 
 
-// SparseTable
-template <typename T> class SparseTable{
-  using Op = function<T(T,T)>;
-  Op f;
-  vector<vector<T>> a;
-  vector<int> log_table;
-public:
-  SparseTable(vector<T> &v, Op f): f(f){
-    int n = v.size();
-    int logn = 0;
-    while((1<<logn) <= n) ++logn;
-    
-    a = vector<vector<T>>(n, vector<T>(logn));
-    REP(i,n) a[i][0] = v[i];
-    FOR(j,1,logn) REP(i,n) a[i][j] = f(a[i][j-1], a[min(n-1, i+(1<<(j-1)))][j-1]);
-
-    log_table = vector<int>(n+1);
-    FOR(i,2,n+1) log_table[i] = log_table[i>>1] + 1;
-  }
-  
-  T query(int s, int t){
-    int k = log_table[t-s+1];
-    return f(a[s][k], a[t-(1<<k)+1][k]);
-  }
-};
 
 
-//Binary Indexed Tree (1-indexed)
-template <typename T> class BIT_1{
-private:
-  vector<T> tree;
-  int n;
-public:
-  BIT_1(int size): tree(size+1, 0), n(size){}
-  void update(int x, T a){while(x <= n){tree[x] += a; x += (x & (-x));}}
-  T sum(int x){T a = 0; while(x > 0){a += tree[x]; x -= (x & (-x));} return a;}
-  T get(int x){return sum(x) - (x==1 ? 0 : sum(x-1));}
-};
-
-//Binary Indexed Tree (0-indexed)
-template <typename T> class BIT_0{
-private:
-  vector<T> tree;
-  int n;
-public:
-  BIT_0(int size): tree(size, 0), n(size){}
-  void update(int x, T a){while(x < n){tree[x] += a; x |= (x + 1);}}
-  T sum(int x){T a = 0; while(x >= 0){a += tree[x]; x = (x & (x+1)) - 1;} return a;}
-  T get(int x){return sum(x) - (x==0 ? 0 : sum(x-1));}
-};
