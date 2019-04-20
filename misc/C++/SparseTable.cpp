@@ -20,7 +20,7 @@ template <typename T> class SparseTable{
   vector<vector<T>> a;
   vector<int> log_table;
 public:
-  SparseTable(vector<T> &v, Op f): f(f){
+  SparseTable(const vector<T> &v, const Op &f): f(f){
     int n = v.size();
     int logn = 0;
     while((1<<logn) <= n) ++logn;

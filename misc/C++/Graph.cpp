@@ -17,7 +17,7 @@ public:
   Edge(int to, Cost cost): to(to), cost(cost){}
   Edge(int from, int to, Cost cost): from(from), to(to), cost(cost){}
 
-  Edge rev(){return Edge(to,from,cost);}
+  Edge rev() const {return Edge(to,from,cost);}
   
   static bool cmp_to_lt(const Edge &e1, const Edge &e2){return e1.to < e2.to;}
   static bool cmp_cost_lt(const Edge &e1, const Edge &e2){return e1.cost < e2.cost;}
@@ -133,6 +133,37 @@ vector<tuple<int,int,T>> kruskal(int n, vector<tuple<int,int,T>> &graph){
   return mst;
 }
 
+//Prim algorithm
+template <typename T> vector<tuple<int,int,T>> prim(int n, const vector<vector<pair<int,T>>> &graph){
+  using tii = tuple<int,int,T>;
+
+  vector<bool> visit(n, false);
+  vector<tii> ret;
+
+  function<bool(tii,tii)> cmp = [](const tii &a, const tii &b){return get<2>(a) > get<2>(b);};
+  priority_queue<tii, vector<tii>, decltype(cmp)> pq(cmp);
+  
+  visit[0] = true;
+  for(auto &p : graph[0]) pq.push(make_tuple(0,p.fst,p.snd));
+
+  while(not pq.empty()){
+    auto t = pq.top(); pq.pop();
+
+    if(visit[get<0>(t)] == visit[get<1>(t)]) continue;
+
+    int i = visit[get<0>(t)] ? get<1>(t) : get<0>(t);
+    for(auto &p : graph[i]){
+      pq.push(make_tuple(i,p.fst,p.snd));
+    }
+
+    visit[i] = true;
+    ret.push_back(t);
+  }
+
+  return ret;
+}
+
+
 //Lowest Common Ancestor
 class LCA{
 private:
@@ -181,7 +212,7 @@ int TSP(vector<vector<int>> &graph, int src){
 // Topological sort
 class TopologicalSort{
 public:
-  static bool tsort_priority_queue(vector<vector<int>> graph, vector<int> &ret){
+  static bool tsort_priority_queue(const vector<vector<int>> &graph, vector<int> &ret){
     int n = graph.size();
     vector<int> indeg(n);
     REP(i,n){
@@ -254,139 +285,144 @@ public:
 
 
 
-template <typename T> class GraphUtils{
-public:
-  // 間接点の列挙
-  static int ap_dfs(int cur, Graph<T> &graph, vector<int> &visit, vector<int> &low, vector<int> &ret, int &v){
-    if(visit[cur] != -1) return visit[cur];
-    visit[cur] = v;
+// 間接点の列挙
+template <typename T> vector<int> articulation_points(Graph<T> &graph){
+  int n = graph.size();
+  vector<int> visit(n, -1), low(n, -1), ret;
 
-    int temp = v;
-    vector<int> children;
-    ++v;
+  int v = 0;
 
-    for(auto &next : graph[cur]){
-      if(visit[next.to] == -1) children.push_back(next.to);
-      int t = ap_dfs(next.to, graph, visit, low, ret, v);
-      temp = min(temp, t);
-    }
+  function<int(int)> dfs =
+    [&](int cur){
+      if(visit[cur] != -1) return visit[cur];
+      visit[cur] = v;
 
-    low[cur] = temp;
+      int temp = v;
+      vector<int> children;
+      ++v;
 
-    if((cur != 0 || children.size() >= 2) && any_of(ALL(children), [&](int x){return low[x] >= visit[cur];})) ret.push_back(cur);
+      for(auto &e : graph[cur]){
+	if(visit[e.to] == -1) children.push_back(e.to);
+	int t = dfs(e.to);
+	temp = min(temp, t);
+      }
 
-    return low[cur];
-  }
+      low[cur] = temp;
 
-  static vector<int> articulation_points(Graph<T> &graph){
-    int n = graph.size();
-    vector<int> visit(n,-1), low(n,-1), ret;
+      if((cur != 0 || children.size() >= 2) and any_of(ALL(children), [&](int x){return low[x] >= visit[cur];}))
+	ret.push_back(cur);
 
-    int v = 0;
-    ap_dfs(0, graph, visit, low, ret, v);
+      return low[cur];
+    };
 
-    return ret;
-  }
+  dfs(0);
 
-  // 橋の列挙
-  static int br_dfs(int cur, int par, Graph<T> &graph, vector<int> &visit, vector<int> &low, vector<Edge<T>> &ret, int &v){
-    if(visit[cur] != -1) return visit[cur];
-    visit[cur] = v;
-    int temp = v;
-    ++v;
-    for(auto &next : graph[cur]){
-      if(next.to == par) continue;
-      int t = br_dfs(next.to, cur, graph, visit, low, ret, v);
-      temp = min(temp, t);
-      if(low[next.to] > visit[cur]) ret.push_back(next);
-    }  
-    return low[cur] = temp; 
-  }
+  return ret;
+}
+
+// 橋の列挙
+template <typename T> vector<Edge<T>> bridges(Graph<T> &graph){
+  int n = graph.size();
+  vector<int> visit(n,-1), low(n,-1);
+  vector<Edge<T>> ret;
+  int v = 0;
+  function<int(int,int)> dfs =
+    [&](int cur, int par){
+      if(visit[cur] != -1) return visit[cur];
+      visit[cur] = v;
+      int temp = v;
+      ++v;
+      for(auto &e : graph[cur]){
+	if(e.to == par) continue;
+	int t = dfs(e.to, cur);
+	temp = min(temp, t);
+	if(low[e.to] > visit[cur]) ret.push_back(e);
+      }  
+      return low[cur] = temp;
+    };
   
-  static vector<Edge<T>> bridges(Graph<T> &graph){
-    int n = graph.size();
-    vector<int> visit(n,-1), low(n,-1);
-    vector<Edge<T>> ret;
-    int v = 0;
-    br_dfs(0,-1,graph,visit,low,ret,v);
-    return ret;
-  }
+  dfs(0,-1);
+  return ret;
+}
 
-  // 強連結成分分解
-  static void scc_dfs(int cur, Graph<T> &graph, vector<bool> &visit, vector<int> &check){
-    visit[cur] = true;
-    for(auto &e : graph[cur]) if(!visit[e.to]) scc_dfs(e.to,graph,visit,check);
-    check.push_back(cur);
-  }
+// 強連結成分分解
+template <typename T> vector<int> strongly_connected_components(Graph<T> &graph){
+  int n = graph.size();
+  vector<bool> visit(n);
+  vector<int> check;
 
-  static void scc_rdfs(int cur, int i, Graph<T> &graph, vector<int> &ret){
-    ret[cur] = i;
-    for(auto &e : graph[cur]) if(ret[e.to] == -1) scc_rdfs(e.to,i,graph,ret);
-  }
+  function<void(int)> dfs =
+    [&](int cur){
+      visit[cur] = true;
+      for(auto &e : graph[cur]) if(!visit[e.to]) dfs(e.to);
+      check.push_back(cur);
+    };
+  
+  REP(i,n) if(!visit[i]) dfs(i);
 
-  static vector<int> strongly_connected_components(Graph<T> &graph){
-    int n = graph.size();
-    vector<bool> visit(n);
-    vector<int> check(n);
+  Graph<T> rgraph(n);
+  REP(i,n) for(auto &e : graph[i]) rgraph[e.to].push_back(e.rev());
 
-    REP(i,n) if(!visit[i]) scc_dfs(i,graph,visit,check);
+  vector<int> ret(n,-1);
 
-    Graph<T> rgraph(n);
-    REP(i,n) for(auto &e : graph[i]) rgraph[e.to].push_back(e.rev());
+  reverse(ALL(check));
 
-    vector<int> ret(n,-1);
+  function<void(int,int)> rdfs =
+    [&](int cur, int i){
+      ret[cur] = i;
+      for(auto &e : rgraph[cur]) if(ret[e.to] == -1) rdfs(e.to,i);
+    };
 
-    reverse(ALL(check));
-    int i = 0;
-    for(auto c : check) if(ret[c] == -1) {scc_rdfs(c,i,rgraph,ret); ++i;}
+  int i = 0;
+  for(auto c : check) if(ret[c] == -1) {rdfs(c,i); ++i;}
     
-    return ret;
-  }
+  return ret;
+}
 
-  // 二重辺連結成分分解
-  static vector<vector<int>> two_edge_connected_components(const Graph<T> &graph){
-    int n = graph.size();
-    vector<vector<int>> ret;
-    vector<int> order(n,-1);
-    stack<int> S;
-    vector<bool> inS(n,false);
-    stack<int> roots;
-    int v = 0;
+// 二重辺連結成分分解
+template <typename T> vector<vector<int>> two_edge_connected_components(const Graph<T> &graph){
+  int n = graph.size();
+  vector<vector<int>> ret;
+  vector<int> order(n,-1);
+  stack<int> S;
+  vector<bool> inS(n,false);
+  stack<int> roots;
+  int v = 0;
     
-    function<void(int,int)> dfs =
-      [&](int cur, int par){
-	order[cur] = v; ++v;
-	S.push(cur);
-	inS[cur] = true;
-	roots.push(cur);
+  function<void(int,int)> dfs =
+    [&](int cur, int par){
+      order[cur] = v; ++v;
+      S.push(cur);
+      inS[cur] = true;
+      roots.push(cur);
  
-	for(auto &e : graph[cur]){
-	  if(order[e.to] == -1){
-	    dfs(e.to, cur);
-	  }else if(e.to != par && inS[e.to]){
-	    while(order[roots.top()] > order[e.to]) roots.pop();
-	  }
+      for(auto &e : graph[cur]){
+	if(order[e.to] == -1){
+	  dfs(e.to, cur);
+	}else if(e.to != par && inS[e.to]){
+	  while(order[roots.top()] > order[e.to]) roots.pop();
 	}
+      }
  
-	if(cur == roots.top()){
-	  vector<int> temp;
+      if(cur == roots.top()){
+	vector<int> temp;
  
-	  while(1){
-	    auto node = S.top(); S.pop();
-	    inS[node] = false;
-	    temp.push_back(node);
-	    if(node == cur) break;
-	  }
+	while(1){
+	  auto node = S.top(); S.pop();
+	  inS[node] = false;
+	  temp.push_back(node);
+	  if(node == cur) break;
+	}
 	  
-	  ret.push_back(temp);
-	  roots.pop();
-	}
-      };
+	ret.push_back(temp);
+	roots.pop();
+      }
+    };
     
-    REP(i,n) if(order[i] == -1) dfs(i, -1);
-    return ret;
-  }
-};
+  REP(i,n) if(order[i] == -1) dfs(i, -1);
+  return ret;
+}
+
 
 // 最大独立集合の大きさ
 // O(n*2^(n/2)) n<=40程度

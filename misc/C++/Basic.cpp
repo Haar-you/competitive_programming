@@ -5,6 +5,7 @@
 #define REPE(v, n) FORE(v, 0, n)
 #define REV(v, a, b) for(int v = (a); v >= (b); --v)
 #define ALL(x) (x).begin(), (x).end()
+#define RALL(x) (x).rbegin(), (x).rend()
 #define ITR(it, c) for(auto it = (c).begin(); it != (c).end(); ++it)
 #define RITR(it, c) for(auto it = (c).rbegin(); it != (c).rend(); ++it)
 #define EXIST(c,x) ((c).find(x) != (c).end())
