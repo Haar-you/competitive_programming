@@ -81,6 +81,7 @@ public:
   }
 
   LLI P(LLI n, LLI k){
+    if(n < k) return 0;
     return (factorial(n) * factorial_inverse(n-k)) % mod;
   }
 
@@ -90,6 +91,19 @@ public:
 
   LLI H(LLI n, LLI k){
     return C(n+k-1, n);
+  }
+
+  LLI stirling_number(LLI n, LLI k){
+    LLI ret = 0;
+    FORE(i,1,k) (ret += ((k-i)%2==0 ? 1 : -1) * (C(k,i) * power(i,n,mod) % mod) + mod) %= mod;
+    (ret *= factorial_inverse(k)) %= mod;
+    return ret;
+  }
+  
+  LLI bell_number(LLI n, LLI k){
+    LLI ret = 0;
+    FORE(j,1,k) (ret += stirling_number(n,j)) %= mod;
+    return ret;
   }
 };
 
@@ -232,3 +246,23 @@ vector<int> mobius(int n){
   
   return ret;
 }
+
+// 分割数
+template <int mod> class partition_number{
+  vector<vector<LLI>> dp;
+
+public:
+  partition_number(int n, int k): dp(n+1, vector<LLI>(k+1)){
+    dp[0][0] = 1;
+
+    FORE(i,0,n){
+      FORE(j,1,k){
+	if(i-j>=0) dp[i][j] = (dp[i][j-1] + dp[i-j][j]) % mod;
+	else dp[i][j] = dp[i][j-1];
+      }
+    }
+  }
+
+  vector<LLI>& operator[](size_t i){return dp[i];}
+};
+
