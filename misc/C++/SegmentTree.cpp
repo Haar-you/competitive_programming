@@ -280,5 +280,67 @@ public:
 };
 
 
+// 2Dセグメント木
+/*
+  http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=1068 // Case#7でMLE
 
+
+ */
+
+template <typename T> class SegmentTree2D{
+  int w, h;
+  vector<vector<T>> dat;
+
+  T e;
+  function<T(T,T)> f, upd;
+
+  T get_w(int x1, int y1, int x2, int y2, int i, int l, int r, int y){
+    if(x2 <= l or r <= x1) return e;
+    if(x1 <= l and r <= x2) return dat[i][y];
+    return f(get_w(x1,y1,x2,y2,i*2+1,l,(l+r)/2,y), get_w(x1,y1,x2,y2,i*2+2,(l+r)/2,r,y));
+  }
+  
+  T get_h(int x1, int y1, int x2, int y2, int i, int l, int r){
+    if(y2 <= l or r <= y1) return e;
+    if(y1 <= l and r <= y2) return get_w(x1,y1,x2,y2,0,0,(w+1)/2,i);
+    return f(get_h(x1,y1,x2,y2,i*2+1,l,(l+r)/2), get_h(x1,y1,x2,y2,i*2+2,(l+r)/2,r));
+  }
+
+public:
+  SegmentTree2D(int width, int height, const T &e, const function<T(T,T)> &f, const function<T(T,T)> &upd):
+    e(e), f(f), upd(upd){
+
+    w = 1;
+    while(w < width) w *= 2;
+    w = w*2-1;
+
+    h = 1;
+    while(h < height) h *= 2;
+    h = h*2-1;
+    
+    dat = vector<vector<T>>(w, vector<T>(h));
+  }
+
+  T get(int x1, int y1, int x2, int y2){ // [(x1,y1),(x2,y2))
+    return get_h(x1,y1,x2,y2,0,0,(h+1)/2);
+  }
+
+  void update(int x, int y, const T &val){
+    int i = x+(w+1)/2-1;
+    int j = y+(h+1)/2-1;
+
+    dat[i][j] = upd(dat[i][j], val);
+
+    for(int X=i, Y=j; X>0; X=(X-1)/2){
+      dat[(X-1)/2][Y] = f(dat[((X-1)/2)*2+1][Y], dat[((X-1)/2)*2+2][Y]);
+    }
+
+    for(int Y=j; Y>0; Y=(Y-1)/2){
+      for(int X=i; ; X=(X-1)/2){
+	dat[X][(Y-1)/2] = f(dat[X][((Y-1)/2)*2+1], dat[X][((Y-1)/2)*2+2]);
+	if(X==0) break;
+      }
+    }
+  }
+};
 
