@@ -575,3 +575,68 @@ public:
 };
 
 
+class Undirected_eulerian_path{
+  int n; // node count
+  int edges = 0; // edge count
+  vector<unordered_map<int,int>> graph;
+  vector<int> degree;
+
+  void del(int i, int j){
+    if(graph[i][j] == 1) graph[i].erase(j);
+    else --graph[i][j];
+
+    if(graph[j][i] == 1) graph[j].erase(i);
+    else --graph[j][i];
+  }
+
+  void dfs(int cur, deque<int> &path){
+    if(not graph[cur].empty()){
+      int next = graph[cur].begin()->fst;
+      del(cur, next);
+      dfs(next, path);
+    }
+
+    while(not graph[cur].empty()){
+      int next = graph[cur].begin()->fst;
+      del(cur, next);
+      deque<int> temp;
+      dfs(next, temp);
+      for(auto x : temp) path.push_back(x);
+    }
+
+    path.push_back(cur);
+  }
+
+public:
+  Undirected_eulerian_path(int n): n(n), graph(n), degree(n){}
+
+  void add(int i, int j){
+    ++graph[i][j];
+    ++graph[j][i];
+
+    ++degree[i];
+    ++degree[j];
+
+    ++edges;
+  }
+
+  bool construct(vector<int> &ret){
+    int odd = 0;
+    int start = 0;
+    REP(i,n){
+      if(degree[i]%2==1){
+	++odd;
+	start = i;
+      }
+    }
+
+    if(odd != 0 and odd != 2) return false;
+
+    deque<int> temp;
+    dfs(start, temp);
+
+    ret = vector<int>(temp.begin(), temp.end());
+
+    return (int)ret.size() == edges+1;
+  }
+};
