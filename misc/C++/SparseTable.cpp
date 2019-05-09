@@ -33,9 +33,9 @@ public:
     FOR(i,2,n+1) log_table[i] = log_table[i>>1] + 1;
   }
   
-  T query(int s, int t){
-    int k = log_table[t-s+1];
-    return f(a[s][k], a[t-(1<<k)+1][k]);
+  T get(int s, int t){ // [s,t)
+    int k = log_table[t-s];
+    return f(a[s][k], a[t-(1<<k)][k]);
   }
 };
 

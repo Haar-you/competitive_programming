@@ -33,7 +33,7 @@ public:
   int merge(int i, int j){
     int ri = root(i), rj = root(j);
     if(ri == rj) return ri;
-    if(ri != rj){
+    else{
       --_count;
       if(_depth[ri] < _depth[rj]){
 	_parent[ri] = rj; _size[rj] += _size[ri];

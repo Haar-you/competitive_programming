@@ -152,3 +152,18 @@ LLI max_rectangle_in_histogram(const vector<LLI> &h){
   
   return ret;
 }
+
+
+
+
+template <typename T> vector<pair<T,int>> group(const vector<T> &v){
+  vector<pair<T,int>> ret;
+
+  for(auto &x : v){
+    if(ret.empty()) ret.push_back({x,1});
+    else if(ret.back().fst == x) ++ret.back().snd;
+    else ret.push_back({x,1});
+  }
+
+  return ret;
+}

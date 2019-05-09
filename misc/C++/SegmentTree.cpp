@@ -9,6 +9,7 @@
  * 範囲更新範囲取得のSegment tree
  * 点更新範囲取得の動的Segment tree
  * 範囲更新点取得の動的Segment tree
+ * 2D Segment tree
  */
 
 // セグメント木
@@ -27,7 +28,7 @@ private:
   };
 
 public:
-  SegmentTree(int n, T e, function<T(T,T)> f, function<T(T,T)> upd):  f(f), e(e), upd(upd){
+  SegmentTree(int n, T e, function<T(T,T)> f, function<T(T,T)> upd): e(e), f(f), upd(upd){
     size = 1;
     while(size < n) size *= 2;
     size = size*2-1;
@@ -187,7 +188,7 @@ template <typename M> class DynamicSegmentTree{
   }
 
 public:
-  DynamicSegmentTree(LLI n, const M &zero, Op op): size(pow(2,ceil(log2(n)))), zero(zero), op(op){ // [0,2^n)
+  DynamicSegmentTree(LLI n, const M &zero, Op op): size(pow(2,ceil(log2(n)))), zero(zero), op(op){ // [0,n)
     root = new Node(zero);
   }
 
@@ -265,7 +266,7 @@ template <typename M> class DynamicLazySegmentTree{
   }
 
 public:
-  DynamicLazySegmentTree(LLI n, const M &zero, Op op): size(pow(2,ceil(log2(n)))), zero(zero), op(op){ // [0,2^n)
+  DynamicLazySegmentTree(LLI n, const M &zero, Op op): size(pow(2,ceil(log2(n)))), zero(zero), op(op){ // [0,n)
     root = new Node(zero);
   }
 

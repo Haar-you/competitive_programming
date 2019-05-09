@@ -32,13 +32,39 @@ public:
 template <typename T> using Graph = vector<vector<Edge<T>>>;
 template <typename T> using Tree = vector<vector<Edge<T>>>;
 
+/*
+template <typename T> class Graph{
+public:
+  int N;
+  vector<vector<Edge<T>>> g;
+  Graph(int N): N(N), g(N){}
+
+  inline void add_edge(int from, int to, T w){
+    g[from].push_back(Edge<T>(from, to, w));
+  }
+
+  inline void add_undirected(int a, int b, T w){
+    g[a].push_back(Edge<T>(a, b, w));
+    g[b].push_back(Edge<T>(b, a, w));
+  }
+
+  inline const size_t size() const {return g.size();}
+  inline vector<Edge<T>>& operator[](size_t i){return g[i];}
+  inline const bool empty() const {return g.empty();}
+  inline vector<Edge<T>>& front(){return g.front();}
+  inline vector<Edge<T>>& back(){return g.back();}
+  inline auto begin(){return g.begin();}
+  inline auto end(){return g.end();}
+};
+*/
+
 //Dijkstra algorithm
 template <typename T>
 vector<T> dijkstra(Graph<T> &graph, int src){
   int n = graph.size();
   vector<T> cost(n, -1);
   vector<bool> check(n, false);
-  rev_priority_queue<pair<T,int>> pq;
+  priority_queue<pair<T,int>, vector<pair<T,int>>, greater<pair<T,int>>> pq;
 
   cost[src] = 0;
   pq.push(make_pair(0,src));
@@ -575,7 +601,7 @@ public:
 };
 
 
-class Undirected_eulerian_path{
+class UndirectedEulerianPath{
   int n; // node count
   int edges = 0; // edge count
   vector<unordered_map<int,int>> graph;
@@ -608,7 +634,7 @@ class Undirected_eulerian_path{
   }
 
 public:
-  Undirected_eulerian_path(int n): n(n), graph(n), degree(n){}
+  UndirectedEulerianPath(int n): n(n), graph(n), degree(n){}
 
   void add(int i, int j){
     ++graph[i][j];
