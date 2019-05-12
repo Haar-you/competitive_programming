@@ -17,6 +17,9 @@ using namespace std;
 /*
   問題例
 
+  [最大流問題]
+  https://yukicoder.me/problems/no/654
+
   [最小カット問題]
   https://atcoder.jp/contests/abc010/tasks/abc010_4
   https://kupc2016.contest.atcoder.jp/tasks/kupc2016_e
@@ -26,8 +29,10 @@ using namespace std;
   [重み付き最大二部マッチング]
   http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=2429 
 
+  [最小費用最大流]
+  http://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=1088 (最大流を求めて、それを流す最小費用を求める)
 
- */
+*/
 
 // Dinic algorithm
 template <typename T, T INF> class Dinic{
@@ -56,8 +61,8 @@ private:
     int cur = path.back();
     if(cur == t){
       T f = INF;
-      FOR(i,1,path.size()) f = min(f, cap[path[i-1]][path[i]]);
-      FOR(i,1,path.size()){
+      FOR(i,1,(int)path.size()) f = min(f, cap[path[i-1]][path[i]]);
+      FOR(i,1,(int)path.size()){
 	cap[path[i-1]][path[i]] -= f;
 	cap[path[i]][path[i-1]] += f;
       }
