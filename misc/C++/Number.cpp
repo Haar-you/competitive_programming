@@ -81,16 +81,17 @@ public:
   }
 
   LLI P(LLI n, LLI k){
-    if(n < k) return 0;
+    if(n < k or n < 0 or k < 0) return 0;
     return (factorial(n) * factorial_inverse(n-k)) % mod;
   }
 
   LLI C(LLI n, LLI k){
+    if(n < k or n < 0 or k < 0) return 0;
     return (P(n,k) * factorial_inverse(k)) % mod;
   }
 
   LLI H(LLI n, LLI k){
-    return C(n+k-1, n);
+    return C(n+k-1, k);
   }
 
   LLI stirling_number(LLI n, LLI k){
