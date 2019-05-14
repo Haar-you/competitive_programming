@@ -1,9 +1,3 @@
-#ifndef COMPILE_TEST
-#define COMPILE_TEST
-#include "Basic.cpp"
-#include "Misc.cpp"
-#include "DataStructure.cpp"
-#endif
 
 /*
 
@@ -91,6 +85,52 @@ vector<T> dijkstra(Graph<T> &graph, int src){
   
   return cost;
 }
+
+// 最短経路の数え上げを行うdijkstra
+/*
+  [問題例]
+  https://atcoder.jp/contests/arc090/tasks/arc090_c
+ */
+template <typename T, int MOD>
+vector<T> dijkstra_with_route_counting(Graph<T> &graph, int src, vector<LLI> &route_count){
+  int n = graph.size();
+  vector<T> cost(n, -1);
+  vector<bool> check(n, false);
+  priority_queue<pair<T,int>, vector<pair<T,int>>, greater<pair<T,int>>> pq;
+
+  route_count.assign(n,0);
+  route_count[src] = 1;
+  
+  cost[src] = 0;
+  pq.push(make_pair(0,src));
+
+  while(!pq.empty()){
+    int i; T d;
+    tie(d,i) = pq.top(); pq.pop();
+
+    if(check[i]) continue;
+    check[i] = true;
+
+    for(auto &e : graph[i]){
+      if(cost[e.to] < 0){
+	cost[e.to] = d + e.cost;
+	route_count[e.to] = route_count[e.from];
+	pq.push(make_pair(cost[e.to], e.to));
+      }else{
+	if(cost[e.to] > d+e.cost){
+	  cost[e.to] = min(cost[e.to], d + e.cost);
+	  route_count[e.to] = route_count[e.from];
+	  if(!check[e.to]) pq.push(make_pair(cost[e.to], e.to));
+	}else if(cost[e.to] == d+e.cost){
+	  (route_count[e.to] += route_count[e.from]) %= MOD;
+	}
+      }
+    }
+  }
+  
+  return cost;
+}
+
 
 //Bellman-Ford algorithm
 template <typename T>
