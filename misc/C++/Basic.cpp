@@ -12,6 +12,7 @@
 #define LLI long long int
 #define fst first
 #define snd second
+#define popcount __builtin_popcount
 
 #ifdef DEBUG
 #include <misc/C++/Debug.cpp>
