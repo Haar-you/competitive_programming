@@ -1,8 +1,3 @@
-#ifndef COMPILE_TEST
-#define COMPILE_TEST
-#include "Basic.cpp"
-#include "Misc.cpp"
-#endif
 
 /*
  * starts_with関数
@@ -11,7 +6,17 @@
  * Z-algorithm
  * Suffix Array
  * KMP algorithm
+ * Aho-Corasick
  */
+
+/*
+  https://yukicoder.me/problems/no/430
+
+  rolling hash [https://yukicoder.me/submissions/347187]
+  suffix array [https://yukicoder.me/submissions/347188]
+  aho-corasick [https://yukicoder.me/submissions/347348]
+ */
+
 
 bool starts_with(const string &str, const string &prefix){
   if(str.size() < prefix.size()) return false;
@@ -42,12 +47,17 @@ public:
   LLI hash(int i, int j){ // [i, j)
     return (shash[j] - shash[i] * pow[j-i] + mod*mod) % mod;
   }
+
+  LLI hash(const T &p){
+    LLI phash = 0;
+    REP(i,(int)p.size()) phash = (phash*base+p[i]) % mod;
+    return phash;
+  }
   
   vector<int> find(const T &p){
     vector<int> ret;
     int pl = p.size();
-    LLI phash = 0;
-    FOR(i,0,pl) phash = (phash*base+p[i]) % mod;
+    LLI phash = hash(p);
     REPE(i,sl-pl) if(hash(i,i+pl) == phash) ret.push_back(i);
     return ret;
   }
@@ -201,5 +211,105 @@ public:
     }
     if(j==p.size()) return i-j;
     return s.size();
+  }
+};
+
+// Aho-Corasick
+class AhoCorasick{
+public:
+  int n;
+  vector<unordered_map<char,int>> trie;
+  vector<int> failure_edge;
+  vector<string> dict;
+  vector<vector<int>> dict_index;
+
+  AhoCorasick(): n(1), trie(1), failure_edge(1){
+  }
+
+  void add(const string &s){
+    dict.push_back(s);
+
+    int cur = 0;
+
+    REP(i,(int)s.size()){
+      char c = s[i];
+
+      if(EXIST(trie[cur], c)){
+	cur = trie[cur][c];
+      }else{
+	++n;
+	trie.resize(n);
+
+	trie[cur][c] = n-1;
+	
+	cur = trie[cur][c];
+      }
+    }
+
+    dict_index.resize(n);
+    dict_index[cur].push_back(dict.size()-1);
+  }
+
+  void construct_failure_link(){
+    failure_edge.resize(n);
+
+    queue<int> dq;
+    dq.push(0);
+
+    while(not dq.empty()){
+      int cur = dq.front(); dq.pop();
+
+      for(auto &kv : trie[cur]){
+	char c = kv.fst;
+	int next = kv.snd;
+
+	if(cur == 0){
+	  failure_edge[next] = 0;
+
+	}else{
+	  int i = failure_edge[cur];
+	  int j = 0;
+	
+	  while(1){
+	    if(EXIST(trie[i], c)){
+	      j = trie[i][c];
+	      break;
+	    }else{
+	      if(i == 0) break;
+	      i = failure_edge[i];
+	    }
+	  }
+	
+	  failure_edge[next] = j;
+
+	  for(auto k : dict_index[failure_edge[next]]){
+	    dict_index[next].push_back(k);
+	  }
+	}
+	
+	dq.push(next);
+      }
+    }
+  }
+
+  vector<pair<int,int>> match(const string &s){
+    vector<pair<int,int>> ret;
+    int cur = 0;
+
+    REP(i,(int)s.size()){
+      char c = s[i];
+
+      while(cur != 0 and not EXIST(trie[cur], c)){
+	cur = failure_edge[cur];
+      }
+
+      cur = trie[cur][c];
+
+      for(auto j : dict_index[cur]){
+	ret.push_back({i, j});
+      }
+    }
+    
+    return ret;
   }
 };
