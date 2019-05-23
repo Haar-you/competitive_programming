@@ -1,19 +1,14 @@
-#ifndef COMPILE_TEST
-#define COMPILE_TEST
-#include "Basic.cpp"
-#endif
-
 /*
 
  */
 
 // mod整数計算
-template <int M> class mod_int_64{
+template <uint32_t M> class mod_int_64{
 public:
-  int64_t val;
+  uint64_t val;
   mod_int_64(): val(0){}
-  mod_int_64(int64_t n): val(n){}
-  mod_int_64(int32_t n): val(n){}
+  mod_int_64(int64_t n): val(n%M){}
+  mod_int_64(int32_t n): val(n%M){}
   
   const mod_int_64 operator+(const mod_int_64 &a) const {return mod_int_64((val+a.val)%M);}
   const mod_int_64 operator-(const mod_int_64 &a) const {return mod_int_64((val-a.val+M)%M);}
