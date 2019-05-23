@@ -345,3 +345,63 @@ public:
   }
 };
 
+/*
+ 演算に特殊化したセグメント木
+
+*/
+
+// Range add query - Range sum query
+template <typename T, typename U> class RAQ_RSQ{
+  int size;
+  vector<T> vec1;
+  vector<U> vec2;
+
+  inline void propagate(int i, int l){
+    if(vec2[i] == 0) return;
+    if(i < size/2){
+      vec2[i*2+1] = vec2[i] + vec2[i*2+1];
+      vec2[i*2+2] = vec2[i] + vec2[i*2+2];
+    }
+    vec1[i] = vec1[i] + vec2[i] * l;
+    vec2[i] = 0;
+  }
+
+  inline T update_aux(int i, int l, int r, int s, int t, const U &x){
+    propagate(i,r-l);
+    if(r <= s || t <= l) return vec1[i];
+    else if(s <= l && r <= t){
+      vec2[i] = vec2[i] + x;
+      propagate(i,r-l);
+      return vec1[i];
+    }
+    else return vec1[i] = update_aux(i*2+1,l,(l+r)/2,s,t,x) + update_aux(i*2+2,(l+r)/2,r,s,t,x);
+  }
+  
+  inline T query_aux(int i, int l, int r, int x, int y){
+    propagate(i,r-l);
+    if(r <= x || y <= l) return 0;
+    else if(x <= l && r <= y) return vec1[i];
+    else return query_aux(i*2+1,l,(l+r)/2,x,y) + query_aux(i*2+2,(l+r)/2,r,x,y);
+  }
+  
+public:
+  RAQ_RSQ(){}
+  RAQ_RSQ(int n){
+    size = 1;
+    while(size<n) size*=2;
+    size *= 2;
+    size -= 1;
+
+    vec1 = vector<T>(size,0);
+    vec2 = vector<U>(size,0);
+  }
+
+  inline void update(int s, int t, const U &x){
+    update_aux(0,0,size/2+1,s,t,x);
+  }
+  
+  inline T get(int x, int y){
+    return query_aux(0,0,size/2+1,x,y);
+  }
+};
+
