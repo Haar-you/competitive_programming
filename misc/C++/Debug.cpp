@@ -11,14 +11,35 @@
 using namespace std;
 
 
-template <typename T> void dump_out(const T &val);
+template <typename T> void dump_out_aux(const vector<T> &val);
+template <typename T, size_t N> void dump_out_aux(const array<T,N> &val);
+template <typename T> void dump_out_aux(const deque<T> &val);
+template <typename T> void dump_out_aux(const stack<T> &val);
+template <typename T> void dump_out_aux(const queue<T> &val);
+template <typename T> void dump_out_aux(const priority_queue<T> &val);
+template <typename T, typename Container, typename Compare> void dump_out_aux(const priority_queue<T,Container,Compare> &val);
+template <typename t> void dump_out_aux(const set<t> &val);
+template <typename T> void dump_out_aux(const unordered_set<T> &val);
+template <typename T, typename U> void dump_out_aux(const map<T,U> &val);
+template <typename T, typename U> void dump_out_aux(const unordered_map<T,U> &val);
 
+template <typename T, typename U> void dump_out_aux(const pair<T,U> &val);
+template <typename... T> void dump_out_aux(const tuple<T...> &val);
+
+
+void dump_out_aux(int val);
+void dump_out_aux(double val);
+void dump_out_aux(const string &val);
+
+template <typename T, size_t N> void dump_out_aux(const T (&val)[N]);
+
+template <typename T> void dump_out_aux(const T &val);
 
 #define dump(...) dump_aux(__LINE__, __PRETTY_FUNCTION__, (#__VA_ARGS__), __VA_ARGS__)
 
-template <class T> void dump_show_name_val(const string &name, const T val){
+template <class T> void dump_show_name_val(const string &name, const T &val){
   cerr << "    \e[32;1m" << boost::core::demangle(typeid(val).name()) << "\e[37m" << " " << name << " = ";
-  dump_out(val);
+  dump_out_aux(val);
   cerr << "\e[m" << endl;
 }
 
@@ -34,7 +55,7 @@ template <class T, class... U> void dump_aux_aux(vector<string> &names, const T 
 }
 
 template <class... T> void dump_aux(const int line, const char *func, const char *name, T const &... vals){
-  cerr << "\e[47;30m" << "L" << line <<  ": in " << func << "\e[m" << endl;
+  cerr << "\e[47;30;2m" << "L" << line <<  ": in " << func << "\e[m" << endl;
 
   vector<string> valnames;
   boost::algorithm::split(valnames, name, boost::is_any_of(","));
@@ -43,26 +64,6 @@ template <class... T> void dump_aux(const int line, const char *func, const char
   dump_aux_aux(valnames, vals...);
 }
 
-template <typename T> void dump_out_aux(const vector<T> &val);
-template <typename T, size_t N> void dump_out_aux(const array<T,N> &val);
-template <typename T> void dump_out_aux(const deque<T> &val);
-template <typename T> void dump_out_aux(const stack<T> &val);
-template <typename T> void dump_out_aux(const queue<T> &val);
-template <typename T> void dump_out_aux(const priority_queue<T> &val);
-template <typename T, typename Container, typename Compare> void dump_out_aux(const priority_queue<T,Container,Compare> &val);
-template <typename t> void dump_out_aux(const set<t> &val);
-template <typename T> void dump_out_aux(const unordered_set<T> &val);
-template <typename T, typename U> void dump_out_aux(const map<T,U> &val);
-template <typename T, typename U> void dump_out_aux(const unordered_map<T,U> &val);
-
-template <typename T, typename U> void dump_out_aux(const pair<T,U> &val);
-template <typename T1, typename T2, typename T3> void dump_out_aux(const tuple<T1,T2,T3> &val);
-template <typename T1, typename T2, typename T3, typename T4> void dump_out_aux(const tuple<T1,T2,T3,T3> &val);
-template <typename T1, typename T2, typename T3, typename T4, typename T5> void dump_out_aux(const tuple<T1,T2,T3,T4,T5> &val);
-
-void dump_out_aux(int val);
-void dump_out_aux(double val);
-void dump_out_aux(const string &val);
 
 
 
@@ -78,8 +79,12 @@ template <typename Iter> void out_container(Iter first, Iter last){
   cerr << "}";
 }
 
+void show_size(size_t size){
+  cerr << "\e[31m" << "[" << size << "]\e[37m";
+}
+
 template <typename T> void show_size(const T &val){
-  cerr << ": " << "size=" << val.size();
+  show_size(val.size());
 }
 
 // vector
@@ -103,32 +108,72 @@ template <typename T> void dump_out_aux(const deque<T> &val){
 // stack
 template <typename T> void dump_out_aux(const stack<T> &val){
   if(val.empty()) cerr << "{}";
-  else if(val.size() == 1) cerr << "{" << val.top() << "}";
-  else cerr << "{" << val.top() << ", ...}";
+  else if(val.size() == 1){
+    cerr << "{";
+    dump_out_aux(val.top());
+    cerr << "}";
+  }
+  else{
+    cerr << "{";
+    dump_out_aux(val.top());
+    cerr << ", ...}";
+  }
   show_size(val);
 }
 
 // queue
 template <typename T> void dump_out_aux(const queue<T> &val){
   if(val.empty()) cerr << "{}";
-  else if(val.size() == 1) cerr << "{" << val.front() << "}";
-  else if(val.size() == 2) cerr << "{" << val.front() << "," << val.back() << "}"; 
-  else cerr << "{" << val.front() << ", ..., " << val.back() << "}";
+  else if(val.size() == 1){
+    cerr << "{";
+    dump_out_aux(val.front());
+    cerr << "}";
+  }
+  else if(val.size() == 2){
+    cerr << "{";
+    dump_out_aux(val.front());
+    cerr << ",";
+    dump_out_aux(val.back());
+    cerr << "}";
+  }
+  else{
+    cerr << "{";
+    dump_out_aux(val.front());
+    cerr << ", ..., ";
+    dump_out_aux(val.back());
+    cerr << "}";
+  }
   show_size(val);
 }
 
 // priority_queue
 template <typename T> void dump_out_aux(const priority_queue<T> &val){
   if(val.empty()) cerr << "{}";
-  else if(val.size() == 1) cerr << "{" << val.top() << "}";
-  else cerr << "{" << val.top() << ", ..." << "}";
+  else if(val.size() == 1){
+    cerr << "{";
+    dump_out_aux(val.top());
+    cerr << "}";
+  }
+  else{
+    cerr << "{";
+    dump_out_aux(val.top());
+    cerr << ", ..." << "}";
+  }
   show_size(val);
 }
 
 template <typename T, typename Container, typename Compare> void dump_out_aux(const priority_queue<T,Container,Compare> &val){
   if(val.empty()) cerr << "{}";
-  else if(val.size() == 1) cerr << "{" << val.top() << "}";
-  else cerr << "{" << val.top() << ", ..." << "}";
+  else if(val.size() == 1){
+    cerr << "{";
+    dump_out_aux(val.top());
+    cerr << "}";
+  }
+  else{
+    cerr << "{";
+    dump_out_aux(val.top());
+    cerr << ", ..." << "}";
+  }
   show_size(val);
 }
 
@@ -162,21 +207,40 @@ template <typename T, typename U> void dump_out_aux(const unordered_map<T,U> &va
 
 // pair
 template <typename T, typename U> void dump_out_aux(const pair<T,U> &val){
-  cerr << "(" << val.fst << "," << val.snd << ")";
+  cerr << "(";
+  dump_out_aux(val.fst);
+  cerr<< ",";
+  dump_out_aux(val.snd);
+  cerr << ")";
 }
 
-// tuple (3~5)
-template <typename T1, typename T2, typename T3> void dump_out_aux(const tuple<T1,T2,T3> &val){
-  cerr << "(" << get<0>(val) << "," << get<1>(val) << "," << get<2>(val) << ")";
+// tuple
+
+template <typename T, size_t N>
+struct TuplePrintHelper{
+  static void print(const T &val){
+    TuplePrintHelper<T,N-1>::print(val);
+    cerr << ",";
+    dump_out_aux(get<N-1>(val));
+  }
+};
+
+template <typename T>
+struct TuplePrintHelper<T,1>{
+  static void print(const T &val){
+    dump_out_aux(get<0>(val));
+  }
+};
+
+
+
+template <typename... T> void dump_out_aux(const tuple<T...> &val){
+  cerr << "(";
+  TuplePrintHelper<tuple<T...>, sizeof...(T)>::print(val);
+  cerr << ")";
 }
 
-template <typename T1, typename T2, typename T3, typename T4> void dump_out_aux(const tuple<T1,T2,T3,T3> &val){
-  cerr << "(" << get<0>(val) << "," << get<1>(val) << "," << get<2>(val) << "," << get<3>(val) << ")";
-}
 
-template <typename T1, typename T2, typename T3, typename T4, typename T5> void dump_out_aux(const tuple<T1,T2,T3,T4,T5> &val){
-  cerr << "(" << get<0>(val) << "," << get<1>(val) << "," << get<2>(val) << "," << get<3>(val) << "," << get<4>(val) << ")";
-}
 
 // others
 void dump_out_aux(int val){
@@ -188,19 +252,24 @@ void dump_out_aux(double val){
 }
 
 void dump_out_aux(const string &val){
-  cerr << val;
+  cerr << "\"" << val << "\"";
+  show_size(val);
+}
+
+template <typename T, size_t N> void dump_out_aux(const T (&val)[N]){
+  cerr << "{";
+  REP(i,(int)N){
+    if(i) cerr << ",";
+    cerr << val[i];
+  }
+  cerr << "}";
+  show_size((size_t)N);
 }
 
 
 template <typename T> void dump_out_aux(const T &val){
   cerr << val;
 }
-
-
-template <typename T> void dump_out(const T &val){
-  dump_out_aux(val);
-}
-
 
 /*
 
