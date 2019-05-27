@@ -26,6 +26,15 @@ template <typename T, typename U> void dump_out_aux(const unordered_map<T,U> &va
 template <typename T, typename U> void dump_out_aux(const pair<T,U> &val);
 template <typename... T> void dump_out_aux(const tuple<T...> &val);
 
+template <typename T> void dump_out_aux(const list<T> &val);
+template <typename T> void dump_out_aux(const forward_list<T> &val);
+
+template <typename T> void dump_out_aux(const multiset<T> &val);
+template <typename T> void dump_out_aux(const unordered_multiset<T> &val);
+template <typename T, typename U> void dump_out_aux(const multimap<T,U> &val);
+template <typename T, typename U> void dump_out_aux(const unordered_multimap<T,U> &val);
+
+template <typename T> void dump_out_aux(const complex<T> &val);
 
 void dump_out_aux(int val);
 void dump_out_aux(double val);
@@ -107,73 +116,60 @@ template <typename T> void dump_out_aux(const deque<T> &val){
 
 // stack
 template <typename T> void dump_out_aux(const stack<T> &val){
-  if(val.empty()) cerr << "{}";
-  else if(val.size() == 1){
-    cerr << "{";
-    dump_out_aux(val.top());
-    cerr << "}";
+  int N = val.size();
+  stack<T> temp(val);
+
+  cerr << "{";
+  REP(i,N){
+    if(i) cerr << ",";
+    auto x = temp.top(); temp.pop();
+    dump_out_aux(x);
   }
-  else{
-    cerr << "{";
-    dump_out_aux(val.top());
-    cerr << ", ...}";
-  }
+  cerr << "}";
   show_size(val);
 }
 
 // queue
 template <typename T> void dump_out_aux(const queue<T> &val){
-  if(val.empty()) cerr << "{}";
-  else if(val.size() == 1){
-    cerr << "{";
-    dump_out_aux(val.front());
-    cerr << "}";
+  int N = val.size();
+  queue<T> temp(val);
+
+  cerr << "{";
+  REP(i,N){
+    if(i) cerr << ",";
+    auto x = temp.front(); temp.pop();
+    dump_out_aux(x);
   }
-  else if(val.size() == 2){
-    cerr << "{";
-    dump_out_aux(val.front());
-    cerr << ",";
-    dump_out_aux(val.back());
-    cerr << "}";
-  }
-  else{
-    cerr << "{";
-    dump_out_aux(val.front());
-    cerr << ", ..., ";
-    dump_out_aux(val.back());
-    cerr << "}";
-  }
+  cerr << "}";
   show_size(val);
 }
 
 // priority_queue
 template <typename T> void dump_out_aux(const priority_queue<T> &val){
-  if(val.empty()) cerr << "{}";
-  else if(val.size() == 1){
-    cerr << "{";
-    dump_out_aux(val.top());
-    cerr << "}";
+  int N = val.size();
+  priority_queue<T> temp(val);
+
+  cerr << "{";
+  REP(i,N){
+    if(i) cerr << ",";
+    auto x = temp.top(); temp.pop();
+    dump_out_aux(x);
   }
-  else{
-    cerr << "{";
-    dump_out_aux(val.top());
-    cerr << ", ..." << "}";
-  }
+  cerr << "}";
   show_size(val);
 }
 
 template <typename T, typename Container, typename Compare> void dump_out_aux(const priority_queue<T,Container,Compare> &val){
-  if(val.empty()) cerr << "{}";
-  else if(val.size() == 1){
-    cerr << "{";
-    dump_out_aux(val.top());
-    cerr << "}";
+  int N = val.size();
+  priority_queue<T,Container,Compare> temp(val);
+
+  cerr << "{";
+  REP(i,N){
+    if(i) cerr << ",";
+    auto x = temp.top(); temp.pop();
+    dump_out_aux(x);
   }
-  else{
-    cerr << "{";
-    dump_out_aux(val.top());
-    cerr << ", ..." << "}";
-  }
+  cerr << "}";
   show_size(val);
 }
 
@@ -241,6 +237,55 @@ template <typename... T> void dump_out_aux(const tuple<T...> &val){
 }
 
 
+// list
+template <typename T> void dump_out_aux(const list<T> &val){
+  out_container(ALL(val));
+  show_size(val);
+}
+
+// forward_list
+template <typename T> void dump_out_aux(const forward_list<T> &val){
+  out_container(ALL(val));
+  show_size(((size_t)distance(ALL(val))));
+}
+
+
+// multiset
+template <typename T> void dump_out_aux(const multiset<T> &val){
+  out_container(ALL(val));
+  show_size(val);
+}
+
+// unordered_multiset
+template <typename T> void dump_out_aux(const unordered_multiset<T> &val){
+  out_container(ALL(val));
+  show_size(val);
+}
+
+
+// multimap
+template <typename T, typename U> void dump_out_aux(const multimap<T,U> &val){
+  out_container(ALL(val));
+  show_size(val);
+}
+
+
+// unordered_multimap
+template <typename T, typename U> void dump_out_aux(const unordered_multimap<T,U> &val){
+  out_container(ALL(val));
+  show_size(val);
+}
+
+// complex number
+template <typename T> void dump_out_aux(const complex<T> &val){
+  cerr << val.real() << (val.imag() < 0 ? "" : "+") << val.imag() << "i";
+}
+
+
+
+
+
+
 
 // others
 void dump_out_aux(int val){
@@ -256,6 +301,8 @@ void dump_out_aux(const string &val){
   show_size(val);
 }
 
+
+// array
 template <typename T, size_t N> void dump_out_aux(const T (&val)[N]){
   cerr << "{";
   REP(i,(int)N){
