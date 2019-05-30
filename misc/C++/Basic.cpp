@@ -1,23 +1,26 @@
 #include <bits/stdc++.h>
-#define FOR(v, a, b) for(int v = (a); v < (b); ++v)
-#define FORE(v, a, b) for(int v = (a); v <= (b); ++v)
+#define LLI long long int
+#define FOR(v, a, b) for(LLI v = (a); v < (b); ++v)
+#define FORE(v, a, b) for(LLI v = (a); v <= (b); ++v)
 #define REP(v, n) FOR(v, 0, n)
 #define REPE(v, n) FORE(v, 0, n)
-#define REV(v, a, b) for(int v = (a); v >= (b); --v)
+#define REV(v, a, b) for(LLI v = (a); v >= (b); --v)
 #define ALL(x) (x).begin(), (x).end()
 #define RALL(x) (x).rbegin(), (x).rend()
 #define ITR(it, c) for(auto it = (c).begin(); it != (c).end(); ++it)
 #define RITR(it, c) for(auto it = (c).rbegin(); it != (c).rend(); ++it)
 #define EXIST(c,x) ((c).find(x) != (c).end())
-#define LLI long long int
 #define fst first
 #define snd second
 #define popcount __builtin_popcount
+#define UNIQ(v) v.erase(unique(ALL(v)), v.end())
+#define bit(i) (1LL<<i)
+#define sz(v) ((LLI)(v).size())
 
 #ifdef DEBUG
 #include <misc/C++/Debug.cpp>
 #else
-#define dump(x) ((void)0)
+#define dump(...) ((void)0)
 #endif
 
 #define gcd __gcd
