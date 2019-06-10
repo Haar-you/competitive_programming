@@ -115,14 +115,16 @@ public:
   const Matrix& operator-=(const Matrix &a){REP(i,_row) _mat[i] -= a[i]; return *this;}
   const Matrix& operator*=(const T &k){REP(i,_row) _mat[i] *= k; return *this;}
 
-  friend ostream& operator<<(ostream &os, const Matrix<T> &m){
-    REP(i,m.row()){
-      REP(j,m.col()){
-	os << m._mat[i][j] << " ";
+  void show_dump(){
+#ifdef DEBUG
+    REP(i,_row){
+      cerr << "|";
+      REP(j,_col){
+	cerr << setw(10) << _mat[i][j] << " ";
       }
-      os << endl;
+      cerr << "|" << endl;
     }
-    return os;
+#endif
   }
 };
 
