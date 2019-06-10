@@ -1,8 +1,3 @@
-#ifndef COMPILE_TEST
-#define COMPILE_TEST
-#include "Basic.cpp"
-#endif
-
 /*
 
  */

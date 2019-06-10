@@ -21,20 +21,21 @@ private:
   T e;
   function<T(T,T)> f, upd;
   
-  T aux(int x, int y, int i, int l, int r){
+  inline T aux(int x, int y, int i, int l, int r){
     if(r<=x || y<=l) return e;
     else if(x<=l && r<=y) return vec[i];
     else return f(aux(x,y,i*2+1,l,(l+r)/2), aux(x,y,i*2+2,(l+r)/2,r));
   };
 
 public:
-  SegmentTree(int n, T e, function<T(T,T)> f, function<T(T,T)> upd): e(e), f(f), upd(upd){
+  SegmentTree(int n, const T &e, const function<T(T,T)> &f, const function<T(T,T)> &upd): e(e), f(f), upd(upd){
     size = 1;
     while(size < n) size *= 2;
     size = size*2-1;
     vec = vector<T>(size, e);
   }
-  void update(int i, T x){
+
+  inline void update(int i, const T &x){
     int j = i+(size+1)/2-1;
     vec[j] = upd(vec[j], x);
     --j;
@@ -44,7 +45,7 @@ public:
     }
   }
 
-  T get(int x, int y){return aux(x,y,0,0,(size+1)/2);}
+  inline T get(int x, int y){return aux(x,y,0,0,(size+1)/2);}
 };
 
 // 遅延セグメント木
@@ -52,16 +53,18 @@ template <typename T> class LazySegmentTree{
 private:
   int size;
   vector<T> vec;
-  function<T(T,T)> f, upd;
   T e;
-  void propagate(int i){
+  function<T(T,T)> f, upd;
+  
+  inline void propagate(int i){
     if(i<size/2){
       vec[i*2+1] = f(vec[i], vec[i*2+1]);
       vec[i*2+2] = f(vec[i], vec[i*2+2]);
       vec[i] = e;
     }
   }
-  void update_aux(int s, int t, int i, int l, int r, T x){
+  
+  inline void update_aux(int s, int t, int i, int l, int r, const T &x){
     if(r <= s || t <= l) return;
     else if(s <= l && r <= t) vec[i] = upd(vec[i],x);
     else{
@@ -70,16 +73,22 @@ private:
       update_aux(s,t,i*2+2,(l+r)/2,r,x);
     }
   }
-  void get_aux(int i){if(i>0) find_aux((i-1)/2); propagate(i);}
+  
+  inline void get_aux(int i){if(i>0) get_aux((i-1)/2); propagate(i);}
+  
 public:
-  LazySegmentTree(int n, T e, function<T(T,T)> f, function<T(T,T)> upd): f(f), e(e), upd(upd){
+  LazySegmentTree(int n, const T &e, const function<T(T,T)> &f, const function<T(T,T)> &upd): e(e), f(f), upd(upd){
     size = 1;
     while(size < n) size *= 2;
     size = size*2-1;
     vec = vector<T>(size, e);
   }
-  void update(int s, int t, T x){update_aux(s,t,0,0,size/2+1,x);}
-  T get(int i){
+
+  inline void update(int s, int t, const T &x){
+    update_aux(s,t,0,0,size/2+1,x);
+  }
+
+  inline T get(int i){
     int j=i+size/2;
     get_aux((j-1)/2);
     return vec[j];
@@ -96,7 +105,7 @@ template <typename T, typename U> class RangeRangeSegmentTree{
   function<U(U,U)> f2;
   function<T(U,T,int)> g;
 
-  void propagate(int i, int l){
+  inline void propagate(int i, int l){
     if(vec2[i] == e2) return;
     if(i < size/2){
       vec2[i*2+1] = f2(vec2[i], vec2[i*2+1]);
@@ -106,7 +115,7 @@ template <typename T, typename U> class RangeRangeSegmentTree{
     vec2[i] = e2;
   }
 
-  T update_aux(int i, int l, int r, int s, int t, const U &x){
+  inline T update_aux(int i, int l, int r, int s, int t, const U &x){
     propagate(i,r-l);
     if(r <= s || t <= l) return vec1[i];
     else if(s <= l && r <= t){
@@ -117,7 +126,7 @@ template <typename T, typename U> class RangeRangeSegmentTree{
     else return vec1[i] = f1(update_aux(i*2+1,l,(l+r)/2,s,t,x), update_aux(i*2+2,(l+r)/2,r,s,t,x));
   }
   
-  T query_aux(int i, int l, int r, int x, int y){
+  inline T query_aux(int i, int l, int r, int x, int y){
     propagate(i,r-l);
     if(r <= x || y <= l) return e1;
     else if(x <= l && r <= y) return vec1[i];
@@ -126,7 +135,7 @@ template <typename T, typename U> class RangeRangeSegmentTree{
   
 public:
   RangeRangeSegmentTree(){}
-  RangeRangeSegmentTree(int n, const T &e1, const function<T(T,T)> f1, const U &e2, const function<U(U,U)> f2, const function<T(T,U,int)> g):
+  RangeRangeSegmentTree(int n, const T &e1, const function<T(T,T)> &f1, const U &e2, const function<U(U,U)> &f2, const function<T(T,U,int)> &g):
     e1(e1), f1(f1), e2(e2), f2(f2), g(g){
     size = 1;
     while(size<n) size*=2;
@@ -137,11 +146,11 @@ public:
     vec2 = vector<U>(size,e2);
   }
 
-  void update(int s, int t, const U &x){
+  inline void update(int s, int t, const U &x){
     update_aux(0,0,size/2+1,s,t,x);
   }
   
-  T get(int x, int y){
+  inline T get(int x, int y){
     return query_aux(0,0,size/2+1,x,y);
   }
 };
@@ -188,11 +197,11 @@ template <typename M> class DynamicSegmentTree{
   }
 
 public:
-  DynamicSegmentTree(LLI n, const M &zero, Op op): size(pow(2,ceil(log2(n)))), zero(zero), op(op){ // [0,n)
+  DynamicSegmentTree(LLI n, const M &zero, const Op &op): size(pow(2,ceil(log2(n)))), zero(zero), op(op){ // [0,n)
     root = new Node(zero);
   }
 
-  void update(LLI i, M &x){
+  void update(LLI i, const M &x){
     _update(root, 0, size, i, x);
   }
 

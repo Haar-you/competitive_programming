@@ -36,7 +36,7 @@ template <typename T, typename U> void dump_out_aux(const unordered_multimap<T,U
 
 template <typename T> void dump_out_aux(const complex<T> &val);
 
-#if __cplusplus == 201703L
+#if __cplusplus >= 201703L
 template <typename T> void dump_out_aux(const optional<T> &val);
 template <typename... T> void dump_out_aux(const variant<T...> &val);
 void dump_out_aux(const any &val);
@@ -289,7 +289,7 @@ template <typename T> void dump_out_aux(const complex<T> &val){
   cerr << val.real() << (val.imag() < 0 ? "" : "+") << val.imag() << "i";
 }
 
-#if __cplusplus == 201703L
+#if __cplusplus >= 201703L
 // optional
 template <typename T> void dump_out_aux(const optional<T> &val){
   if(val.has_value()){

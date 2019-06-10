@@ -153,6 +153,26 @@ LLI max_rectangle_in_histogram(const vector<LLI> &h){
   return ret;
 }
 
+// 最大面積長方形の面積
+int max_rectangle(const vector<vector<int>> &d){
+  int H = d.size();
+  int W = d[0].size();
+    
+  vector<vector<int>> c(d);
+  FOR(i,1,H){
+    REP(j,W){
+      if(c[i][j]){
+	c[i][j] += c[i-1][j];
+      }
+    }
+  }
+  int ret = 0;
+  REP(i,H){
+    int t = max_rectangle_in_histogram(c[i]);
+    chmax(ret, t);
+  }
+  return ret;
+}
 
 
 
