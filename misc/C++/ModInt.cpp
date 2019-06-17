@@ -8,7 +8,6 @@ public:
   uint64_t val;
   mod_int_64(): val(0){}
   mod_int_64(int64_t n): val(n%M){}
-  mod_int_64(int32_t n): val(n%M){}
   
   const mod_int_64 operator+(const mod_int_64 &a) const {return mod_int_64((val+a.val)%M);}
   const mod_int_64 operator-(const mod_int_64 &a) const {return mod_int_64((val-a.val+M)%M);}
@@ -35,8 +34,8 @@ public:
   }
 };
 
-template <int M> istream& operator>>(istream &is, mod_int_64<M> &a){is >> a.val; return is;}
-template <int M> ostream& operator<<(ostream &os, const mod_int_64<M> &a){ os << a.val; return os;}
+template <uint32_t M> istream& operator>>(istream &is, mod_int_64<M> &a){is >> a.val; return is;}
+template <uint32_t M> ostream& operator<<(ostream &os, const mod_int_64<M> &a){ os << a.val; return os;}
 
 // 実行時mod整数
 

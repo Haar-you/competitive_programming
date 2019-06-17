@@ -44,6 +44,7 @@ public:
 
   inline const size_t size() const {return g.size();}
   inline vector<Edge<T>>& operator[](size_t i){return g[i];}
+  inline const vector<Edge<T>>& operator[](size_t i) const {return g[i];}
   inline const bool empty() const {return g.empty();}
   inline vector<Edge<T>>& front(){return g.front();}
   inline vector<Edge<T>>& back(){return g.back();}
