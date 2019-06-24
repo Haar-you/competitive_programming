@@ -48,61 +48,6 @@ LLI mod_log(LLI a, LLI b, LLI m){
 }
 
 
-template <typename T> LLI factorial(T n, T m){LLI k = 1LL; FORE(i,1,n) k = (k*i) % m; return k;}
-template <typename T> LLI combination(T n, T k, T p){if(n<k||n<0||k<0) return 0; if(n==0||k==0) return 1; return (((n*modInv(k,p))%p)*combination(n-1,k-1,p))%p;}
-template <typename T> LLI permutaion(T n, T k, T p){if(n<k||n<0||k<0) return 0; if(n==0||k==0) return 1; return (n * permutaion(n-1,k-1,p)) % p;}
-
-// 組み合わせ関連の前計算用クラス
-template <LLI mod> class Combination{
-public:
-  vector<LLI> facto = {1};
-  vector<LLI> ifacto = {1};
-
-  LLI factorial(LLI i){
-    if(i < 0) throw exception();
-    if(facto.size() <= i) facto.resize(i+1, -1);
-    if(i == 0) return facto[0] = 1;
-    LLI j = i;
-    for(;j>=0;--j) if(facto[j] != -1) break;
-    for(LLI k=j+1; k<=i; ++k) (facto[k] = facto[k-1] * k) %= mod;
-    return facto[i];
-  }
-
-  LLI factorial_inverse(LLI i){
-    if(i < 0) throw exception();
-    if(ifacto.size() <= i) ifacto.resize(i+1, -1);
-    if(ifacto[i] != -1) return ifacto[i];
-    return ifacto[i] = mod_inv(factorial(i), mod);
-  }
-
-  LLI P(LLI n, LLI k){
-    if(n < k or n < 0 or k < 0) return 0;
-    return (factorial(n) * factorial_inverse(n-k)) % mod;
-  }
-
-  LLI C(LLI n, LLI k){
-    if(n < k or n < 0 or k < 0) return 0;
-    return (P(n,k) * factorial_inverse(k)) % mod;
-  }
-
-  LLI H(LLI n, LLI k){
-    return C(n+k-1, k);
-  }
-
-  LLI stirling_number(LLI n, LLI k){
-    LLI ret = 0;
-    FORE(i,1,k) (ret += ((k-i)%2==0 ? 1 : -1) * (C(k,i) * power(i,n,mod) % mod) + mod) %= mod;
-    (ret *= factorial_inverse(k)) %= mod;
-    return ret;
-  }
-  
-  LLI bell_number(LLI n, LLI k){
-    LLI ret = 0;
-    FORE(j,1,k) (ret += stirling_number(n,j)) %= mod;
-    return ret;
-  }
-};
-
 // 符号関数
 template <typename T> int sign(T n){return (n>0)-(n<0);}
 

@@ -13,8 +13,8 @@
 #define fst first
 #define snd second
 #define popcount __builtin_popcount
-#define UNIQ(v) v.erase(unique(ALL(v)), v.end())
-#define bit(i) (1LL<<i)
+#define UNIQ(v) (v).erase(unique(ALL(v)), (v).end())
+#define bit(i) (1LL<<(i))
 #define sz(v) ((LLI)(v).size())
 
 #ifdef DEBUG

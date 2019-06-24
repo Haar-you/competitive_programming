@@ -1,8 +1,3 @@
-#ifndef COMPILE_TEST
-#define COMPILE_TEST
-#include "Basic.cpp"
-#endif
-
 /*
  * 点更新範囲取得のSegment tree
  * 範囲更新点取得のSegment tree

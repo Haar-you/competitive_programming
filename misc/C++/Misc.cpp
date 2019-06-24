@@ -175,8 +175,7 @@ int max_rectangle(const vector<vector<int>> &d){
 }
 
 
-
-template <typename T> vector<pair<T,int>> group(const vector<T> &v){
+template <typename T, typename Container=vector<T>> vector<pair<T,int>> group(const Container &v){
   vector<pair<T,int>> ret;
 
   for(auto &x : v){
