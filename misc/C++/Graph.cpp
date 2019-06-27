@@ -13,10 +13,6 @@ public:
 
   Edge rev() const {return Edge(to,from,cost);}
   
-  static bool cmp_to_lt(const Edge &e1, const Edge &e2){return e1.to < e2.to;}
-  static bool cmp_cost_lt(const Edge &e1, const Edge &e2){return e1.cost < e2.cost;}
-  static bool cmp_to_gt(const Edge &e1, const Edge &e2){return e1.to > e2.to;}
-  static bool cmp_cost_gt(const Edge &e1, const Edge &e2){return e1.cost > e2.cost;}
   friend ostream& operator<<(ostream &os, const Edge &e){
     os << "(FROM: " << e.from << "," << "TO: " << e.to << "," << "COST: " << e.cost << ")";
     return os;

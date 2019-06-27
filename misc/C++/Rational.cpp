@@ -17,6 +17,10 @@ public:
     int64_t g = gcd(num,den);
     nume = num/g;
     deno = den/g;
+    if(deno < 0){
+      nume = -nume;
+      deno = -deno;
+    }
   }
   Rational& operator+=(const Rational &a);
   Rational& operator-=(const Rational &a);
@@ -28,8 +32,8 @@ ostream& operator<<(ostream &os, const Rational &r){os << r.nume << "/" << r.den
 
 Rational operator-(const Rational &a){return Rational(-a.nume, a.deno);}
 
-Rational operator+(const Rational &a, const Rational &b){int64_t l = lcm(a.deno,b.deno); return Rational(a.nume*l/a.deno + b.nume*l/b.deno, l);}
-Rational operator-(const Rational &a, const Rational &b){int64_t l = lcm(a.deno,b.deno); return Rational(a.nume*l/a.deno - b.nume*l/b.deno, l);}
+Rational operator+(const Rational &a, const Rational &b){int64_t l = lcm(a.deno,b.deno); return Rational(l/a.deno*a.nume + l/b.deno*b.nume, l);}
+Rational operator-(const Rational &a, const Rational &b){int64_t l = lcm(a.deno,b.deno); return Rational(l/a.deno*a.nume - l/b.deno*b.nume, l);}
 Rational operator*(const Rational &a, const Rational &b){return Rational(a.nume*b.nume, a.deno*b.deno);}
 Rational operator/(const Rational &a, const Rational &b){return Rational(a.nume*b.deno, a.deno*b.nume);}
 
