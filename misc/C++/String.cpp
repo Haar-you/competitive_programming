@@ -313,3 +313,14 @@ public:
     return ret;
   }
 };
+
+
+//Levenshtein distance
+int levenshtein(string a, string b){
+  vector<vector<int>> dp(a.size()+1, vector<int>(b.size()+1, 0));
+  REPE(i,a.size()) dp[i][0] = i;
+  REPE(i,b.size()) dp[0][i] = i;
+  FORE(i,1,a.size()) FORE(j,1,b.size())
+    dp[i][j] = min(min(dp[i-1][j]+1, dp[i][j-1]+1), dp[i-1][j-1]+(a[i-1] == b[j-1] ? 0 : 1));
+  return dp[a.size()][b.size()];
+}
