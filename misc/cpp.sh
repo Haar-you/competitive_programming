@@ -58,9 +58,9 @@ do
 done
 echo -e "\e[m";
 
-func $CPP_FILE | while read line
+func $CPP_FILE | while IFS= read -r line
 do
   echo -en "\e[35;1m>\e[m \e[1m";
-  echo $line;
+  echo "$line";
   echo -en "\e[m";
 done
